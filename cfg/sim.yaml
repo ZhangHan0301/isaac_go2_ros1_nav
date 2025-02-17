@@ -1,0 +1,7 @@
+defaults:
+  - _self_
+
+num_envs: 1
+camera_follow: True
+env_name: warehouse-forklifts
+# env_name: full-warehouse
