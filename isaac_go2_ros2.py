@@ -21,10 +21,15 @@ import rospy
 import sensor_msgs.point_cloud2 as pc2
 from sensor_msgs.msg import PointCloud2
 import std_msgs.msg
+
+from omni.isaac.lab.utils.assets import ISAACLAB_NUCLEUS_DIR
+
+
     # 创建发布器
 lidar_pub = rospy.Publisher('/lidar_points', PointCloud2, queue_size=10)
 
 FILE_PATH = os.path.join(os.path.dirname(__file__), "cfg")
+print(FILE_PATH)
 @hydra.main(config_path=FILE_PATH, config_name="sim", version_base=None)
 def run_simulator(cfg):
     # Go2 Environment setup
@@ -67,8 +72,6 @@ def run_simulator(cfg):
     # Run simulation
     sim_step_dt = float(go2_env_cfg.sim.dt * go2_env_cfg.decimation)
     obs, _ = env.reset()
-    # print("obs: ",obs)
-    print("obs size: ", obs.size())
     while simulation_app.is_running():
         start_time = time.time()
         with torch.inference_mode():            
@@ -88,7 +91,12 @@ def run_simulator(cfg):
             actions = policy(obs)
 
             # step the environment
-            obs, _, _, _ = env.step(actions)
+            obs, reward, done, _ = env.step(actions)
+            # print("done: ",done)
+            # print("pose command: ", env.env.command_manager.get_command("pose_command"))
+            # print("vel command :", env.env.command_manager.get_command("base_vel_cmd"))
+            # print("\nobs: ",obs.flatten()[:3])
+            # print("reward: ", reward)
 
             # # ROS2 data
             # dm.pub_ros2_data()
@@ -97,6 +105,14 @@ def run_simulator(cfg):
             # Camera follow
             if (cfg.camera_follow):
                 camera_follow(env)
+                
+            if(done):
+                print("robot is done\n")
+                env.env.scene.reset()
+                time.sleep(1)
+                
+            
+            
 
             # limit loop time
             elapsed_time = time.time() - start_time
@@ -105,7 +121,7 @@ def run_simulator(cfg):
                 time.sleep(sleep_duration)
         actual_loop_time = time.time() - start_time
         rtf = min(1.0, sim_step_dt/elapsed_time)
-        print(f"\rStep time: {actual_loop_time*1000:.2g}ms, Real Time Factor: {rtf:.2g}", end='', flush=True)
+        print(f"\rStep time: {actual_loop_time*1000:.2g}ms, Real Time Factor: {rtf:.2g}\n", end='', flush=True)
     
     # dm.destroy_node()
     # rclpy.shutdown()
