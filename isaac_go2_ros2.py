@@ -65,9 +65,6 @@ def run_simulator(cfg):
     system_input.subscribe_to_keyboard_events(
         omni.appwindow.get_default_app_window().get_keyboard(), go2_ctrl.sub_keyboard_event)
     
-    # ROS2 Bridge
-    # rclpy.init()
-    # dm = go2_ros2_bridge.RobotDataManager(env, lidar_annotators, cameras)
 
     # Run simulation
     sim_step_dt = float(go2_env_cfg.sim.dt * go2_env_cfg.decimation)
@@ -92,24 +89,23 @@ def run_simulator(cfg):
 
             # step the environment
             obs, reward, done, _ = env.step(actions)
+            print("join pose ", obs.flatten()[12:24])
             # print("done: ",done)
             # print("pose command: ", env.env.command_manager.get_command("pose_command"))
             # print("vel command :", env.env.command_manager.get_command("base_vel_cmd"))
             # print("\nobs: ",obs.flatten()[:3])
             # print("reward: ", reward)
 
-            # # ROS2 data
-            # dm.pub_ros2_data()
-            # rclpy.spin_once(dm)
-
             # Camera follow
             if (cfg.camera_follow):
                 camera_follow(env)
                 
             if(done):
-                print("robot is done\n")
-                env.env.scene.reset()
-                time.sleep(1)
+                print("\n\n robot is done\n\n\n")
+                env.reset()
+                # env.env.scene["contact_forces"].reset()
+                # env.env.scene.update(0.1)
+                
                 
             
             

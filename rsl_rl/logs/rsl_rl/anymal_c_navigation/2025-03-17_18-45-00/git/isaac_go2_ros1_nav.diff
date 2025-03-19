@@ -1,0 +1,433 @@
+--- git status ---
+On branch main
+Your branch is based on 'origin/master', but the upstream is gone.
+  (use "git branch --unset-upstream" to fixup)
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   env/terrain.py
+	modified:   env/terrain_cfg.py
+	modified:   go2/go2_env.py
+	modified:   go2/mdp/event.py
+	modified:   go2/mdp/terminations.py
+	modified:   isaac_go2_ros2.py
+	modified:   test/contact.py
+	modified:   test/learn_torch.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	.vscode/
+	ckpts/unitree_go2/anymal_c_navigation/
+	env/__init__.py
+	navigation/
+	rsl_rl/
+	test/contact_sensor.py
+
+no changes added to commit (use "git add" and/or "git commit -a") 
+
+
+--- git diff ---
+diff --git a/env/terrain.py b/env/terrain.py
+index 902a79c..9289cb0 100644
+--- a/env/terrain.py
++++ b/env/terrain.py
+@@ -1,4 +1,5 @@
+-from omni.isaac.lab.terrains.height_field.utils import height_field_to_mesh
++# from omni.isaac.lab.terrains.height_field.utils import height_field_to_mesh
++from isaaclab.terrains.height_field.utils import height_field_to_mesh
+ import numpy as np
+ import time
+ 
+diff --git a/env/terrain_cfg.py b/env/terrain_cfg.py
+index 730396e..4b9ea7e 100644
+--- a/env/terrain_cfg.py
++++ b/env/terrain_cfg.py
+@@ -1,6 +1,9 @@
+-from omni.isaac.lab.terrains.height_field.hf_terrains_cfg import HfTerrainBaseCfg
++# from omni.isaac.lab.terrains.height_field.hf_terrains_cfg import HfTerrainBaseCfg
++from isaaclab.terrains.height_field.hf_terrains_cfg import HfTerrainBaseCfg
++
+ import env.terrain as terrain
+-from omni.isaac.lab.utils import configclass
++# from omni.isaac.lab.utils import configclass
++from isaaclab.utils import configclass
+ from dataclasses import MISSING
+ 
+ @configclass
+diff --git a/go2/go2_env.py b/go2/go2_env.py
+index 9dd5e45..624f32f 100644
+--- a/go2/go2_env.py
++++ b/go2/go2_env.py
+@@ -46,7 +46,12 @@ class Go2SimCfg(InteractiveSceneCfg):
+ 
+     # Go2 foot contact sensor
+     
+-    contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Go2/.*", history_length=0, track_air_time=True, debug_vis = True)
++    contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Go2/.*thigh", 
++                                      history_length=3, 
++                                      track_air_time=True, 
++                                      debug_vis = True,
++                                      filter_prim_paths_expr=["{ENV_REGEX_NS}/obstacleTerrain"],
++                                    )
+ 
+     # Go2 height scanner
+     height_scanner = RayCasterCfg(
+@@ -125,27 +130,54 @@ class CommandsCfg:
+ class EventCfg:
+     """Configuration for events."""
+     reset_base = EventTerm(
+-        func=mdp.reset_root_state_uniform,
++        func=mdp.reset_go2_state,
+         mode="reset",
+         params={
+-            "pose_range": {"x": (-0.0, 0.0), "y": (-0.0, 0.0), "yaw": (-0.0, 0.0)},
++            "pose_range": {"x": (-0.0, 0.0), "y": (0.5, 0.5), "z":(-0.1, -0.1) ,"yaw": (-0.3, -0.3)},
+             "velocity_range": {
+                 "x": (-0.0, 0.0),
+-                "y": (0.5, 0.5),
++                "y": (0.0, 0.0),
+                 "z": (-0.0, 0.0),
+                 "roll": (-0.0, 0.0),
+                 "pitch": (-0.0, 0.0),
+                 "yaw": (-0.0, 0.0),
+             },
+-            "asset_cfg": SceneEntityCfg(name="unitree_go2")
++            "asset_cfg": SceneEntityCfg(name="unitree_go2"),
++            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*thigh")
+         },
+     )
+     
+-    reset_force = EventTerm(
+-        func=mdp.reset_contact,
+-        mode="reset",
+-        # params={"sensor_cfg": SceneEntityCfg("contact_forces",body_names=".*thigh")}
+-    )
++    # reset_base = EventTerm(
++    #     func=mdp.reset_joint_pose_vel,
++    #     mode="reset",
++    #     params={
++    #         "asset_cfg": SceneEntityCfg(name="unitree_go2")
++    #     },
++    # )
++    
++    # base_external_force_torque = EventTerm(
++    #     func=mdp.apply_external_force_torque,
++    #     mode="reset",
++    #     params={
++    #         "asset_cfg": SceneEntityCfg("unitree_go2", body_names=".*thigh"),
++    #         "force_range": (0.0, 0.0),
++    #         "torque_range": (-0.0, 0.0),
++    #     },
++    # )
++    
++    # reset_scene_to_default = EventTerm(func=mdp.reset_scene_to_default, mode="reset")
++    
++        
++    # base_external_force_torque = EventTerm(
++    #     func=mdp.contact_reset,
++    #     mode="reset",
++    #     params={
++    #         "asset_cfg": SceneEntityCfg("contact_forces", body_names=".*thigh"),
++    #     },
++    # )
++    
++    
++
+     
+ 
+ @configclass
+@@ -169,18 +201,18 @@ class RewardsCfg:
+ class TerminationsCfg:
+     """Termination terms for the MDP."""
+         # (1) Time out
+-    # time_out = DoneTerm(func=mdp.time_out, time_out=True)
++    time_out = DoneTerm(func=mdp.time_out, time_out=True)
+     
+     # reach_goal = DoneTerm(func=mdp.object_reached_goal,params={"robot_cfg": SceneEntityCfg(name="unitree_go2"), "command_name": "pose_command"})
+ 
+     thigh_contact = DoneTerm(
+-        func=mdp.illegal_contact,
++        func=mdp.detec_collision,
+         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*thigh"), "threshold": 1.0},
+     )
+-    head_contact = DoneTerm(
+-        func=mdp.illegal_contact,
+-        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="Head_lower"), "threshold": 1.0},
+-    )
++    # head_contact = DoneTerm(
++    #     func=mdp.illegal_contact,
++    #     params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="Head_lower"), "threshold": 1.0},
++    # )
+     
+ @configclass
+ class CurriculumCfg:
+diff --git a/go2/mdp/event.py b/go2/mdp/event.py
+index 6f68a3e..4b5db65 100644
+--- a/go2/mdp/event.py
++++ b/go2/mdp/event.py
+@@ -1,18 +1,101 @@
+ from __future__ import annotations
+ 
+ import torch
+-from typing import TYPE_CHECKING
++import time
++from typing import TYPE_CHECKING, Literal
+ 
+-from omni.isaac.lab.assets import Articulation, RigidObject
+-from omni.isaac.lab.managers import SceneEntityCfg
+-from omni.isaac.lab.sensors import ContactSensor
++import carb
++import omni.physics.tensors.impl.api as physx
++
++import omni.isaac.lab.sim as sim_utils
++import omni.isaac.lab.utils.math as math_utils
++from omni.isaac.lab.actuators import ImplicitActuator
++from omni.isaac.lab.assets import Articulation, DeformableObject, RigidObject
++from omni.isaac.lab.managers import EventTermCfg, ManagerTermBase, SceneEntityCfg
++from omni.isaac.lab.terrains import TerrainImporter
+ 
+ if TYPE_CHECKING:
+-    from omni.isaac.lab.envs import ManagerBasedRLEnv
+-    from omni.isaac.lab.managers.command_manager import CommandTerm
++    from omni.isaac.lab.envs import ManagerBasedEnv
++from omni.isaac.lab.sensors import ContactSensor
++    
++def contact_reset(
++    env: ManagerBasedEnv,
++    env_ids: torch.Tensor,
++    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
++):
++    contact_fores: ContactSensor = env.scene.sensors[asset_cfg.name]
++    print("\n [reset] name ", asset_cfg.name)
++    contact_fores.reset()
++    net_contact_forces_history = contact_fores.data.net_forces_w_history #四维数据 [环境数、历史轨迹、身体部位、xyz方向上的力]
++    force_magnitude = torch.norm(net_contact_forces_history,dim=-1)
++    print("   after reset  force magnitude ", force_magnitude)
++  
++def reset_joint_pose_vel(env: ManagerBasedEnv,
++    env_ids: torch.Tensor,
++    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")):
+     
+-def reset_contact(env: ManagerBasedRLEnv,env_ids: torch.Tensor,):
+-    """Terminate when the contact force on the sensor exceeds the force threshold."""
++    asset: Articulation = env.scene[asset_cfg.name]
++    # get default joint state
++    joint_pos = asset.data.default_joint_pos[env_ids].clone()
++    joint_vel = asset.data.default_joint_vel[env_ids].clone()
++    asset.write_joint_state_to_sim(joint_pos, joint_vel, env_ids=env_ids)
++   
++
++def reset_go2_state(
++    env: ManagerBasedEnv,
++    env_ids: torch.Tensor,
++    pose_range: dict[str, tuple[float, float]],
++    velocity_range: dict[str, tuple[float, float]],
++    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
++    sensor_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
++):
++    """Reset the asset root state to a random position and velocity uniformly within the given ranges.
++
++    This function randomizes the root position and velocity of the asset.
++
++    * It samples the root position from the given ranges and adds them to the default root position, before setting
++      them into the physics simulation.
++    * It samples the root orientation from the given ranges and sets them into the physics simulation.
++    * It samples the root velocity from the given ranges and sets them into the physics simulation.
++
++    The function takes a dictionary of pose and velocity ranges for each axis and rotation. The keys of the
++    dictionary are ``x``, ``y``, ``z``, ``roll``, ``pitch``, and ``yaw``. The values are tuples of the form
++    ``(min, max)``. If the dictionary does not contain a key, the position or velocity is set to zero for that axis.
++    """
+     # extract the used quantities (to enable type-hinting)
+-    contact_sensor: ContactSensor = env.scene.sensors["contact_fores"]
+-    contact_sensor.reset()
++
++    asset: RigidObject | Articulation = env.scene[asset_cfg.name]
++    # get default root state
++    root_states = asset.data.default_root_state[env_ids].clone()
++
++    # poses
++    range_list = [pose_range.get(key, (0.0, 0.0)) for key in ["x", "y", "z", "roll", "pitch", "yaw"]]
++    ranges = torch.tensor(range_list, device=asset.device)
++    rand_samples = math_utils.sample_uniform(ranges[:, 0], ranges[:, 1], (len(env_ids), 6), device=asset.device)
++    print("env_origins ", env.scene.env_origins[env_ids])
++    positions = root_states[:, 0:3] + env.scene.env_origins[env_ids] + rand_samples[:, 0:3]
++    orientations_delta = math_utils.quat_from_euler_xyz(rand_samples[:, 3], rand_samples[:, 4], rand_samples[:, 5])
++    orientations = math_utils.quat_mul(root_states[:, 3:7], orientations_delta)
++    # velocities
++    range_list = [velocity_range.get(key, (0.0, 0.0)) for key in ["x", "y", "z", "roll", "pitch", "yaw"]]
++    ranges = torch.tensor(range_list, device=asset.device)
++    rand_samples = math_utils.sample_uniform(ranges[:, 0], ranges[:, 1], (len(env_ids), 6), device=asset.device)
++
++    velocities = root_states[:, 7:13] + rand_samples
++
++    # set into the physics simulation
++    print("positions ", positions)
++    asset.write_root_link_pose_to_sim(torch.cat([positions, orientations], dim=-1), env_ids=env_ids)
++    asset.write_root_com_velocity_to_sim(velocities, env_ids=env_ids)    
++
++    asset2: Articulation = env.scene[asset_cfg.name]
++        # get default joint state
++    joint_pos = asset2.data.default_joint_pos[env_ids].clone()
++    joint_vel = asset2.data.default_joint_vel[env_ids].clone()
++    print("joint default pose ", joint_pos)
++    asset2.write_joint_state_to_sim(joint_pos, joint_vel, env_ids=env_ids)
++    env.scene.reset()
++
++    
++    # contact_fores: ContactSensor = env.scene.sensors[sensor_cfg.name]
++    # contact_fores.reset()
+\ No newline at end of file
+diff --git a/go2/mdp/terminations.py b/go2/mdp/terminations.py
+index b1f1571..4078946 100644
+--- a/go2/mdp/terminations.py
++++ b/go2/mdp/terminations.py
+@@ -22,7 +22,12 @@ from omni.isaac.lab.assets import Articulation, RigidObject
+ 
+ if TYPE_CHECKING:
+     from omni.isaac.lab.envs import ManagerBasedRLEnv
++    from omni.isaac.lab.managers.command_manager import CommandTerm
+ 
++from omni.isaac.lab.sensors import ContactSensor
++
++
++    
+ 
+ def object_reached_goal(
+     env: ManagerBasedRLEnv,
+@@ -66,4 +71,39 @@ def action_limitations(
+     x = ee_tool[:,0] - robot.data.root_state_w[:, 0]
+     y = ee_tool[:,1] - robot.data.root_state_w[:, 1]
+ 
+-    return (ee_tool[:,2] < 0.2) | (ee_tool[:,2] > 2.0) | (y > 0.5) | (y < -0.2) | (x < 0.1)
+\ No newline at end of file
++    return (ee_tool[:,2] < 0.2) | (ee_tool[:,2] > 2.0) | (y > 0.5) | (y < -0.2) | (x < 0.1)
++
++def illegal_contact2(env: ManagerBasedRLEnv, threshold: float, sensor_cfg: SceneEntityCfg) -> torch.Tensor:
++    """Terminate when the contact force on the sensor exceeds the force threshold."""
++    # extract the used quantities (to enable type-hinting)
++    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
++    net_contact_forces = contact_sensor.data.net_forces_w #四维数据 [环境数、历史轨迹、身体部位、xyz方向上的力]
++    # print("net contact forces: ", net_contact_forces.shape)
++    # print("net contact sum : ", net_contact_forces)
++
++    print("\n ---------- \n  sensor name: ", sensor_cfg.body_names)
++    print("net contact forces: ",net_contact_forces[:,sensor_cfg.body_ids])
++    
++    max_forces = torch.max(torch.norm(net_contact_forces[:, sensor_cfg.body_ids], dim=-1), dim=1)[0]
++    print("max forces: ", max_forces)
++    
++    
++    # check if any contact force exceeds the threshold
++    return torch.any(
++        torch.max(torch.norm(net_contact_forces[:, sensor_cfg.body_ids], dim=-1), dim=1)[0] > threshold, dim=0
++    )
++    
++def detec_collision(env: ManagerBasedRLEnv, threshold: float, sensor_cfg: SceneEntityCfg) -> torch.Tensor:
++    """Terminate when the contact force on the sensor exceeds the force threshold."""
++    # extract the used quantities (to enable type-hinting)
++    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
++    net_contact_forces_history = contact_sensor.data.net_forces_w_history[:,:,sensor_cfg.body_ids] #四维数据 [环境数、历史轨迹、身体部位、xyz方向上的力]
++    force_magnitude = torch.norm(net_contact_forces_history,dim=-1)
++    print("force magnitude ", force_magnitude)
++    
++    collision_detected = (force_magnitude > threshold).any(dim=2)
++    print("collision detected ", collision_detected)
++    done = collision_detected.all(dim=1)
++    # check if any contact force exceeds the threshold
++    # done* (env.episode_length_buf>10)
++    return done* (env.episode_length_buf>10)
+\ No newline at end of file
+diff --git a/isaac_go2_ros2.py b/isaac_go2_ros2.py
+index 8b27b67..a15cd70 100644
+--- a/isaac_go2_ros2.py
++++ b/isaac_go2_ros2.py
+@@ -65,9 +65,6 @@ def run_simulator(cfg):
+     system_input.subscribe_to_keyboard_events(
+         omni.appwindow.get_default_app_window().get_keyboard(), go2_ctrl.sub_keyboard_event)
+     
+-    # ROS2 Bridge
+-    # rclpy.init()
+-    # dm = go2_ros2_bridge.RobotDataManager(env, lidar_annotators, cameras)
+ 
+     # Run simulation
+     sim_step_dt = float(go2_env_cfg.sim.dt * go2_env_cfg.decimation)
+@@ -92,24 +89,23 @@ def run_simulator(cfg):
+ 
+             # step the environment
+             obs, reward, done, _ = env.step(actions)
++            print("join pose ", obs.flatten()[12:24])
+             # print("done: ",done)
+             # print("pose command: ", env.env.command_manager.get_command("pose_command"))
+             # print("vel command :", env.env.command_manager.get_command("base_vel_cmd"))
+             # print("\nobs: ",obs.flatten()[:3])
+             # print("reward: ", reward)
+ 
+-            # # ROS2 data
+-            # dm.pub_ros2_data()
+-            # rclpy.spin_once(dm)
+-
+             # Camera follow
+             if (cfg.camera_follow):
+                 camera_follow(env)
+                 
+             if(done):
+-                print("robot is done\n")
+-                env.env.scene.reset()
+-                time.sleep(1)
++                print("\n\n robot is done\n\n\n")
++                env.reset()
++                # env.env.scene["contact_forces"].reset()
++                # env.env.scene.update(0.1)
++                
+                 
+             
+             
+diff --git a/test/contact.py b/test/contact.py
+index d5d275c..50deaa6 100644
+--- a/test/contact.py
++++ b/test/contact.py
+@@ -121,7 +121,7 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
+             joint_pos += torch.rand_like(joint_pos) * 0.1
+             scene["robot"].write_joint_state_to_sim(joint_pos, joint_vel)
+             # clear internal buffers
+-            scene.reset()
++            # scene.reset()
+             print("[INFO]: Resetting robot state...")
+         # Apply default actions to the robot
+         # -- generate actions/commands
+diff --git a/test/learn_torch.py b/test/learn_torch.py
+index 2ad5259..e184fb2 100644
+--- a/test/learn_torch.py
++++ b/test/learn_torch.py
+@@ -1,18 +1,11 @@
+ import torch
++import omni.isaac.lab.utils.math as math_utils
++pose_range :dict = {"x": (-0.1, 0.0), "y": (0.5, 0.5), "yaw": (-0.3, -0.3)}
++range_list = [pose_range.get(key, (0.0, 0.0)) for key in ["x", "y", "z", "roll", "pitch", "yaw"]]
++ranges = torch.tensor(range_list,)
++rand_samples = math_utils.sample_uniform(ranges[:, 0], ranges[:, 1], (1, 6), device="cpu" )
++print(ranges)
++print(ranges[:,0])
++print(ranges[:,1])
+ 
+-# 创建张量
+-torch.manual_seed(10)
+-a = torch.rand(2, 2, 5, 3)
+-# b = torch.rand([1, 1, 5, 3])
+-b = a[:,:,[0,1,3,4]]
+-print(b)
+-print(b.shape)
+-print("-----c ----------------")
+-c = torch.norm(b,dim=-1)
+-print(c)
+-print(c.shape)
+-d = torch.max(c,dim=1)[0]
+-print("------d ---------------")
+-print(d)
+-# print(d.shape)
+-# print(b)
+\ No newline at end of file
++print(rand_samples)
+\ No newline at end of file

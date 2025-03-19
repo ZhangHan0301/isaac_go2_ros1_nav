@@ -46,7 +46,12 @@ class Go2SimCfg(InteractiveSceneCfg):
 
     # Go2 foot contact sensor
     
-    contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Go2/.*", history_length=0, track_air_time=True, debug_vis = True)
+    contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Go2/.*thigh", 
+                                      history_length=3, 
+                                      track_air_time=True, 
+                                      debug_vis = True,
+                                      filter_prim_paths_expr=["{ENV_REGEX_NS}/obstacleTerrain"],
+                                    )
 
     # Go2 height scanner
     height_scanner = RayCasterCfg(
@@ -125,27 +130,54 @@ class CommandsCfg:
 class EventCfg:
     """Configuration for events."""
     reset_base = EventTerm(
-        func=mdp.reset_root_state_uniform,
+        func=mdp.reset_go2_state,
         mode="reset",
         params={
-            "pose_range": {"x": (-0.0, 0.0), "y": (-0.0, 0.0), "yaw": (-0.0, 0.0)},
+            "pose_range": {"x": (-0.0, 0.0), "y": (0.5, 0.5), "z":(-0.1, -0.1) ,"yaw": (-0.3, -0.3)},
             "velocity_range": {
                 "x": (-0.0, 0.0),
-                "y": (0.5, 0.5),
+                "y": (0.0, 0.0),
                 "z": (-0.0, 0.0),
                 "roll": (-0.0, 0.0),
                 "pitch": (-0.0, 0.0),
                 "yaw": (-0.0, 0.0),
             },
-            "asset_cfg": SceneEntityCfg(name="unitree_go2")
+            "asset_cfg": SceneEntityCfg(name="unitree_go2"),
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*thigh")
         },
     )
     
-    reset_force = EventTerm(
-        func=mdp.reset_contact,
-        mode="reset",
-        # params={"sensor_cfg": SceneEntityCfg("contact_forces",body_names=".*thigh")}
-    )
+    # reset_base = EventTerm(
+    #     func=mdp.reset_joint_pose_vel,
+    #     mode="reset",
+    #     params={
+    #         "asset_cfg": SceneEntityCfg(name="unitree_go2")
+    #     },
+    # )
+    
+    # base_external_force_torque = EventTerm(
+    #     func=mdp.apply_external_force_torque,
+    #     mode="reset",
+    #     params={
+    #         "asset_cfg": SceneEntityCfg("unitree_go2", body_names=".*thigh"),
+    #         "force_range": (0.0, 0.0),
+    #         "torque_range": (-0.0, 0.0),
+    #     },
+    # )
+    
+    # reset_scene_to_default = EventTerm(func=mdp.reset_scene_to_default, mode="reset")
+    
+        
+    # base_external_force_torque = EventTerm(
+    #     func=mdp.contact_reset,
+    #     mode="reset",
+    #     params={
+    #         "asset_cfg": SceneEntityCfg("contact_forces", body_names=".*thigh"),
+    #     },
+    # )
+    
+    
+
     
 
 @configclass
@@ -169,18 +201,18 @@ class RewardsCfg:
 class TerminationsCfg:
     """Termination terms for the MDP."""
         # (1) Time out
-    # time_out = DoneTerm(func=mdp.time_out, time_out=True)
+    time_out = DoneTerm(func=mdp.time_out, time_out=True)
     
     # reach_goal = DoneTerm(func=mdp.object_reached_goal,params={"robot_cfg": SceneEntityCfg(name="unitree_go2"), "command_name": "pose_command"})
 
     thigh_contact = DoneTerm(
-        func=mdp.illegal_contact,
+        func=mdp.detec_collision,
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*thigh"), "threshold": 1.0},
     )
-    head_contact = DoneTerm(
-        func=mdp.illegal_contact,
-        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="Head_lower"), "threshold": 1.0},
-    )
+    # head_contact = DoneTerm(
+    #     func=mdp.illegal_contact,
+    #     params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="Head_lower"), "threshold": 1.0},
+    # )
     
 @configclass
 class CurriculumCfg:

@@ -1,0 +1,13 @@
+{
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.typeCheckingMode": "off",
+    "python.defaultInterpreterPath": "/home/nav/miniconda3/envs/env_isaaclab/bin/python",
+    "python.analysis.extraPaths": [
+        // 添加所有本地包的源码根目录
+        "/home/nav/isaac_new/IsaacLab/source/isaaclab",
+        "/home/nav/isaac_new/IsaacLab/source/isaaclab_assets",
+        "/home/nav/isaac_new/IsaacLab/source/isaaclab_rl",
+        "/home/nav/isaac_new/IsaacLab/source/isaaclab_tasks",
+        "/home/nav/isaac_new/legged_lab"
+    ]
+}
