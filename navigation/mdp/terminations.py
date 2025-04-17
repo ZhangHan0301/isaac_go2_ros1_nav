@@ -23,11 +23,20 @@ if TYPE_CHECKING:
     from isaaclab.managers.command_manager import CommandTerm
     
 
+def bady_balance(env: ManagerBasedRLEnv, 
+                 asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+                 threshold: float=-0.8) -> torch.Tensor:
+    """Gravity projection on the asset's root frame."""
+    # extract the used quantities (to enable type-hinting)
+    asset: RigidObject = env.scene[asset_cfg.name]
+    gravity = asset.data.projected_gravity_b
+    # print("gravity ",gravity)
+    return gravity[:,2] > threshold
+
 def object_reached_goal(
     env: ManagerBasedRLEnv,
     command_name: str = "pose_command",
-    threshold: float = 0.5,
-    robot_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+    threshold: float = 0.2,
 ) -> torch.Tensor:
     """Termination condition for the object reaching the goal position.
 
@@ -35,20 +44,12 @@ def object_reached_goal(
         env: The environment.
         command_name: The name of the command that is used to control the object.
         threshold: The threshold for the object to reach the goal position. Defaults to 0.02.
-        robot_cfg: The robot configuration. Defaults to SceneEntityCfg("robot").
-        object_cfg: The object configuration. Defaults to SceneEntityCfg("object").
 
     """
     # extract the used quantities (to enable type-hinting)
-    robot: RigidObject = env.scene[robot_cfg.name]
-    current_robot_pose = robot.data.root_pos_w
     command = env.command_manager.get_command(command_name)
-    # print("\ncommand: ", command)
-    # compute the desired position in the world frame
+
     des_pos_b = command[:, :3]
     # diff = current_robot_pose - des_pos_b
-    distance = torch.linalg.norm(des_pos_b, dim=1)
-    # print("distance :", distance)
-
-    # rewarded if the object is lifted above the threshold
-    return distance < threshold
+    distances = torch.norm(des_pos_b, dim=1)
+    return distances< threshold

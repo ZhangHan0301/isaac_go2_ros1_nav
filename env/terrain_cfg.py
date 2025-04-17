@@ -1,9 +1,9 @@
-# from omni.isaac.lab.terrains.height_field.hf_terrains_cfg import HfTerrainBaseCfg
-from isaaclab.terrains.height_field.hf_terrains_cfg import HfTerrainBaseCfg
+from omni.isaac.lab.terrains.height_field.hf_terrains_cfg import HfTerrainBaseCfg
+# from isaaclab.terrains.height_field.hf_terrains_cfg import HfTerrainBaseCfg
 
 import env.terrain as terrain
-# from omni.isaac.lab.utils import configclass
-from isaaclab.utils import configclass
+from omni.isaac.lab.utils import configclass
+# from isaaclab.utils import configclass
 from dataclasses import MISSING
 
 @configclass

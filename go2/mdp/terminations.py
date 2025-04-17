@@ -81,11 +81,11 @@ def illegal_contact2(env: ManagerBasedRLEnv, threshold: float, sensor_cfg: Scene
     # print("net contact forces: ", net_contact_forces.shape)
     # print("net contact sum : ", net_contact_forces)
 
-    print("\n ---------- \n  sensor name: ", sensor_cfg.body_names)
-    print("net contact forces: ",net_contact_forces[:,sensor_cfg.body_ids])
+    # print("\n ---------- \n  sensor name: ", sensor_cfg.body_names)
+    # print("net contact forces: ",net_contact_forces[:,sensor_cfg.body_ids])
     
     max_forces = torch.max(torch.norm(net_contact_forces[:, sensor_cfg.body_ids], dim=-1), dim=1)[0]
-    print("max forces: ", max_forces)
+    # print("max forces: ", max_forces)
     
     
     # check if any contact force exceeds the threshold
@@ -99,10 +99,10 @@ def detec_collision(env: ManagerBasedRLEnv, threshold: float, sensor_cfg: SceneE
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     net_contact_forces_history = contact_sensor.data.net_forces_w_history[:,:,sensor_cfg.body_ids] #四维数据 [环境数、历史轨迹、身体部位、xyz方向上的力]
     force_magnitude = torch.norm(net_contact_forces_history,dim=-1)
-    print("force magnitude ", force_magnitude)
+    # print("force magnitude ", force_magnitude)
     
     collision_detected = (force_magnitude > threshold).any(dim=2)
-    print("collision detected ", collision_detected)
+    # print("collision detected ", collision_detected)
     done = collision_detected.all(dim=1)
     # check if any contact force exceeds the threshold
     # done* (env.episode_length_buf>10)

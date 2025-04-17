@@ -7,7 +7,7 @@ from env.terrain_cfg import HfUniformDiscreteObstaclesTerrainCfg
 def create_obstacle_sparse_env():
     # Terrain
     terrain = TerrainImporterCfg(
-        prim_path="/World/obstacleTerrain",
+        prim_path="/World/ground",
         terrain_type="generator",
         terrain_generator=TerrainGeneratorCfg(
             seed=0,
@@ -31,7 +31,7 @@ def create_obstacle_sparse_env():
 def create_obstacle_medium_env():
     # Terrain
     terrain = TerrainImporterCfg(
-        prim_path="/World/obstacleTerrain",
+        prim_path="/World/ground",
         terrain_type="generator",
         terrain_generator=TerrainGeneratorCfg(
             seed=0,
@@ -56,7 +56,7 @@ def create_obstacle_medium_env():
 def create_obstacle_dense_env():
     # Terrain
     terrain = TerrainImporterCfg(
-        prim_path="/World/obstacleTerrain",
+        prim_path="/World/ground",
         terrain_type="generator",
         terrain_generator=TerrainGeneratorCfg(
             seed=0,

@@ -1,7 +1,6 @@
 # from omni.isaac.lab.terrains.height_field.hf_terrains_cfg import HfTerrainBaseCfg
 from isaaclab.terrains.height_field.hf_terrains_cfg import HfTerrainBaseCfg
-
-import env.terrain as terrain
+from .terrain import *
 # from omni.isaac.lab.utils import configclass
 from isaaclab.utils import configclass
 from dataclasses import MISSING
@@ -10,7 +9,7 @@ from dataclasses import MISSING
 class HfUniformDiscreteObstaclesTerrainCfg(HfTerrainBaseCfg):
     """Configuration for a discrete obstacles height field terrain."""
 
-    function = terrain.uniform_discrete_obstacles_terrain
+    function = uniform_discrete_obstacles_terrain
     seed: float = 0
     """Env seed."""
     obstacle_width_range: tuple[float, float] = MISSING

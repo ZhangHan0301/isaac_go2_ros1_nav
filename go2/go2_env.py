@@ -15,6 +15,10 @@ from omni.isaac.lab.utils.noise import UniformNoiseCfg
 from omni.isaac.lab.managers import TerminationTermCfg as DoneTerm
 from omni.isaac.lab.managers import RewardTermCfg as RewTerm
 
+from omni.isaac.lab.terrains import TerrainImporterCfg, TerrainImporter
+from omni.isaac.lab.terrains import TerrainGeneratorCfg
+from env.terrain_cfg import HfUniformDiscreteObstaclesTerrainCfg
+
 from omni.isaac.core.utils.viewports import set_camera_view
 import numpy as np
 from scipy.spatial.transform import Rotation as R
@@ -25,12 +29,31 @@ import math
 @configclass
 class Go2SimCfg(InteractiveSceneCfg):
     # ground plane
-    ground = AssetBaseCfg(prim_path="/World/ground", 
-                          spawn=sim_utils.GroundPlaneCfg(color=(0.1, 0.1, 0.1), size=(300., 300.)),
-                          init_state=AssetBaseCfg.InitialStateCfg(
-                              pos=(0, 0, 1e-4)
-                          ))
-
+    # ground = AssetBaseCfg(prim_path="/World/ground", 
+    #                       spawn=sim_utils.GroundPlaneCfg(color=(0.1, 0.1, 0.1), size=(300., 300.)),
+    #                       init_state=AssetBaseCfg.InitialStateCfg(
+    #                           pos=(0, 0, 1e-4)
+    #                       ))
+    terrain = TerrainImporterCfg(
+        prim_path="/World/ground",
+        terrain_type="generator",
+        terrain_generator=TerrainGeneratorCfg(
+            seed=0,
+            size=(50, 50),
+            color_scheme="height",
+            sub_terrains={"t1": HfUniformDiscreteObstaclesTerrainCfg(
+                seed=0,
+                size=(50, 50),
+                obstacle_width_range=(0.5, 1.0),
+                obstacle_height_range=(1.0, 2.0),
+                num_obstacles=10,
+                obstacles_distance=2.0,
+                border_width=5,
+                avoid_positions=[[0, 0]]
+            )},
+        ),
+        visual_material=None,     
+    )
     # Lights
     light = AssetBaseCfg(
         prim_path="/World/light",
@@ -50,7 +73,7 @@ class Go2SimCfg(InteractiveSceneCfg):
                                       history_length=3, 
                                       track_air_time=True, 
                                       debug_vis = True,
-                                      filter_prim_paths_expr=["{ENV_REGEX_NS}/obstacleTerrain"],
+                            
                                     )
 
     # Go2 height scanner
@@ -60,6 +83,15 @@ class Go2SimCfg(InteractiveSceneCfg):
         attach_yaw_only=True,
         pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]), 
         debug_vis=False,
+        mesh_prim_paths=["/World/ground"],
+    )
+    
+    height_scanner2 = RayCasterCfg(
+        prim_path="{ENV_REGEX_NS}/Go2/base",
+        offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20)), 
+        attach_yaw_only=True,
+        pattern_cfg=patterns.GridPatternCfg(resolution=1.0, size=[3.0, 2.0]), 
+        debug_vis=True,
         mesh_prim_paths=["/World/ground"],
     )
 
@@ -121,9 +153,9 @@ class CommandsCfg:
     pose_command = mdp.UniformPose2dCommandCfg(
         asset_name="unitree_go2",
         simple_heading=False,
-        resampling_time_range=(20.0, 20.0),
+        resampling_time_range=(50.0, 50.0),
         debug_vis=True,
-        ranges=mdp.UniformPose2dCommandCfg.Ranges(pos_x=(-1.0, 1.0), pos_y=(-1.0, 1.0), heading=(-math.pi, math.pi)),
+        ranges=mdp.UniformPose2dCommandCfg.Ranges(pos_x=(2.0, 2.0), pos_y=(2.0, 2.0), heading=(-math.pi, math.pi)),
     )
 
 @configclass
@@ -147,34 +179,7 @@ class EventCfg:
         },
     )
     
-    # reset_base = EventTerm(
-    #     func=mdp.reset_joint_pose_vel,
-    #     mode="reset",
-    #     params={
-    #         "asset_cfg": SceneEntityCfg(name="unitree_go2")
-    #     },
-    # )
-    
-    # base_external_force_torque = EventTerm(
-    #     func=mdp.apply_external_force_torque,
-    #     mode="reset",
-    #     params={
-    #         "asset_cfg": SceneEntityCfg("unitree_go2", body_names=".*thigh"),
-    #         "force_range": (0.0, 0.0),
-    #         "torque_range": (-0.0, 0.0),
-    #     },
-    # )
-    
-    # reset_scene_to_default = EventTerm(func=mdp.reset_scene_to_default, mode="reset")
-    
-        
-    # base_external_force_torque = EventTerm(
-    #     func=mdp.contact_reset,
-    #     mode="reset",
-    #     params={
-    #         "asset_cfg": SceneEntityCfg("contact_forces", body_names=".*thigh"),
-    #     },
-    # )
+
     
     
 
@@ -184,11 +189,22 @@ class EventCfg:
 class RewardsCfg:
     # alive = RewTerm(func=mdp.is_alive, weight=1.0)
     
-    robot_pose = RewTerm(func=mdp.robot_pose_target, weight=1.0,params={"asset_cfg": SceneEntityCfg(name="unitree_go2"), "target": 0.0})
+    # robot_pose = RewTerm(func=mdp.robot_pose_target, weight=1.0,params={"asset_cfg": SceneEntityCfg(name="unitree_go2"), "target": 0.0})
+    # position_tracking = RewTerm(
+    #     func=mdp.position_command_error_tanh,
+    #     weight=0.5,
+    #     params={"std": 2.0, "command_name": "pose_command"},
+    # )
+    # track_lin_vel_xy_exp = RewTerm(
+    #     func=mdp.action_rate_l2,
+    #     weight=1.0,
+    # )
     
-    track_lin_vel_xy_exp = RewTerm(
-        func=mdp.action_rate_l2,
-        weight=1.0,
+    yaw_alignment_reward = RewTerm(
+        func=mdp.yaw_alignment_reward,
+        weight=0.5, 
+        params={"command_name": "pose_command",
+                "robot_config": SceneEntityCfg(name="unitree_go2")},
     )
     
     # terminating = RewTerm(func=mdp.is_terminated, weight=-2.0)
@@ -205,10 +221,10 @@ class TerminationsCfg:
     
     # reach_goal = DoneTerm(func=mdp.object_reached_goal,params={"robot_cfg": SceneEntityCfg(name="unitree_go2"), "command_name": "pose_command"})
 
-    thigh_contact = DoneTerm(
-        func=mdp.detec_collision,
-        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*thigh"), "threshold": 1.0},
-    )
+    # thigh_contact = DoneTerm(
+    #     func=mdp.detec_collision,
+    #     params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*thigh"), "threshold": 1.0},
+    # )
     # head_contact = DoneTerm(
     #     func=mdp.illegal_contact,
     #     params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="Head_lower"), "threshold": 1.0},

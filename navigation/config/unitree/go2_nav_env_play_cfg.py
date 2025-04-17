@@ -5,7 +5,9 @@
 
 import math
 
-from sympy import false, im
+from sympy import false, im, true
+from wandb import agent
+from warp import func
 
 import isaaclab.sim as sim_utils
 from dataclasses import MISSING
@@ -54,7 +56,7 @@ class EventCfg:
         func=mdp.reset_root_state_uniform,
         mode="reset",
         params={
-            "pose_range": {"x": (-0.0, 0.0), "y": (-0.0, 0.0), "z":(0.05, 0.1), "yaw": (-3.14, 3.14)},
+            "pose_range": {"x": (-2.5, 0.0), "y": (-2.0, -2.0), "z":(0.05, 0.1), "yaw": (-3.14, 3.14)},
             "velocity_range": {
                 "x": (-0.0, 0.0),
                 "y": (-0.0, 0.0),
@@ -78,6 +80,7 @@ class ActionsCfg:
         low_level_decimation=4,
         low_level_actions=LOW_LEVEL_ENV_CFG.actions.joint_pos,
         low_level_observations=LOW_LEVEL_ENV_CFG.observations.policy,
+        # debug_vis=False
     )
 
 # 网络输入
@@ -106,18 +109,16 @@ class ObservationsCfg:
 class RewardsCfg:
     """Reward terms for the MDP."""
 
-    termination_penalty = RewTerm(func=mdp.is_terminated, weight=-400.0)
-
-    # 取值范围 0-1.0
+        # 取值范围 0-1.0
     position_tracking = RewTerm(
         func=mdp.position_command_error_tanh,
-        weight=1.0,
-        params={"std": 5.0, "command_name": "pose_command"},
+        weight=0.5,
+        params={"std": 2.0, "command_name": "pose_command"},
     )
     # 取值范围 0- 1.0
     position_tracking_fine_grained = RewTerm(
         func=mdp.position_command_error_tanh,
-        weight=1.0,
+        weight=0.5,
         params={"std": 0.2, "command_name": "pose_command"},
     )
     # -3.14 - 3.14
@@ -129,27 +130,24 @@ class RewardsCfg:
     
     base_line_vel = RewTerm(
         func=mdp.base_lin_vel_penalize,
-        weight=0.1,
-        params={"speed_limit":0.8, "penalty_coef":0.2}
+        weight=0.2,
+        params={"speed_limit":1.5}
     )
-
-    
     # 取值范围 -1.5 - 0.5
     yaw_alignment_reward = RewTerm(
         func=mdp.yaw_alignment_reward,
-        weight=0.2, 
+        weight=0.5, 
         params={"command_name": "pose_command"},
     )
     obstacle_reward = RewTerm(
         func=mdp.obstacle_reward,
-        weight= 0.2,
-        params={ "z_threshold":-0.2, 
-                "d_safe":0.8 },
+        weight= 0.1,
+        params={ "z_threshold":0.3, 
+                "d_safe":0.3 },
     )
-    # reach_goal = RewTerm(func=mdp.object_reached_goal_reward,
-    #                 weight = 0.5,
-    #                 params={"command_name": "pose_command", "threshold": 0.1},
-    #                 )
+
+    
+
 
 # 随机生成目标点
 @configclass
@@ -159,9 +157,9 @@ class CommandsCfg:
     pose_command = mdp.UniformPose2dCommandCfg(
         asset_name="robot",
         simple_heading=False,
-        resampling_time_range=(10.0, 10.0),
+        resampling_time_range=(20.0, 20.0),
         debug_vis=True,
-        ranges=mdp.UniformPose2dCommandCfg.Ranges(pos_x=(-10.0, 15.0), pos_y=(-10.0, 10.0), heading=(-math.pi, math.pi)),
+        ranges=mdp.UniformPose2dCommandCfg.Ranges(pos_x=(5.0, 5.0), pos_y=(5.0, 5.0), heading=(0, 0)),
     )
 
 # 终止条件
@@ -169,10 +167,10 @@ class CommandsCfg:
 class TerminationsCfg:
     """Termination terms for the MDP."""
 
-    time_out = DoneTerm(func=mdp.time_out, time_out=True)
+    # time_out = DoneTerm(func=mdp.time_out, time_out=True)
     
-    # reach_goal = DoneTerm(func=mdp.object_reached_goal,
-    #                       params={"command_name": "pose_command", "threshold": 0.1})
+    reach_goal = DoneTerm(func=mdp.object_reached_goal,
+                          params={"command_name": "pose_command", "threshold": 0.2})
     
     base_contact = DoneTerm(
         func=mdp.illegal_contact,
@@ -186,55 +184,36 @@ class TerminationsCfg:
     bady_balance = DoneTerm(func= mdp.bady_balance,
                             params={"threshold":-0.85})
     
-
    
 
 @configclass
 class MySceneCfg(InteractiveSceneCfg):
     """Configuration for the terrain scene with a legged robot."""
-
-    # ground terrain
-    # terrain = TerrainImporterCfg(
-    #     prim_path="/World/ground",
-    #     terrain_type="generator",
-    #     terrain_generator=ROUGH_TERRAINS_CFG,
-    #     max_init_terrain_level=5,
-    #     collision_group=-1,
-    #     physics_material=sim_utils.RigidBodyMaterialCfg(
-    #         friction_combine_mode="multiply",
-    #         restitution_combine_mode="multiply",
-    #         static_friction=1.0,
-    #         dynamic_friction=1.0,
-    #     ),
-    #     visual_material=sim_utils.MdlFileCfg(
-    #         mdl_path=f"{ISAACLAB_NUCLEUS_DIR}/Materials/TilesMarbleSpiderWhiteBrickBondHoned/TilesMarbleSpiderWhiteBrickBondHoned.mdl",
-    #         project_uvw=True,
-    #         texture_scale=(0.25, 0.25),
-    #     ),
-    #     debug_vis=False,
-    # )
     
     terrain2 = TerrainImporterCfg(
         prim_path="/World/ground",
         terrain_type="generator",
         terrain_generator=TerrainGeneratorCfg(
             seed=0,
-            size=(50, 50),
+            # num_cols=2,
+            # num_rows= 2,
+            size=(30, 30),
             color_scheme="height",
             sub_terrains={"t1": HfUniformDiscreteObstaclesTerrainCfg(
                 seed=0,
-                size=(50, 50),
+                size=(20, 20),
                 obstacle_width_range=(0.5, 1.0),
-                obstacle_height_range=(1.0, 2.0),
-                num_obstacles=80,
-                obstacles_distance=2.5,
+                obstacle_height_range=(0.1, 1.5),
+                num_obstacles=10,
+                obstacles_distance=3.0,
                 border_width=5,
-                avoid_positions=[[0, 0]]
+                avoid_positions=[[0, 0.0]]
             )},
         ),
         visual_material=None,     
     )
-    
+    # terrain = TerrainImporterCfg(prim_path="/World/ground", terrain_type="usd", 
+    #                              usd_path="/home/nav/isaac_new/asset/Assets/Isaac/4.5/Isaac/Environments/my_scence/narrow_corrier/World1/World0.usd")
     
     # robots
     robot: ArticulationCfg = UNITREE_GO2_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
@@ -246,7 +225,7 @@ class MySceneCfg(InteractiveSceneCfg):
         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
         attach_yaw_only=True,
         pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
-        debug_vis=True,
+        debug_vis=False,
         mesh_prim_paths=["/World/ground"],
     )
     
@@ -255,7 +234,7 @@ class MySceneCfg(InteractiveSceneCfg):
         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
         attach_yaw_only=True,
         pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[3.0, 2.0]),
-        debug_vis=True,
+        debug_vis=true,
         mesh_prim_paths=["/World/ground"],
     )
         
@@ -272,7 +251,7 @@ class MySceneCfg(InteractiveSceneCfg):
 
 
 @configclass
-class NavigationEnvCfg(ManagerBasedRLEnvCfg):
+class NavigationEnvPlayCfg(ManagerBasedRLEnvCfg):
     """Configuration for the navigation environment."""
 
     # environment settings
@@ -292,13 +271,18 @@ class NavigationEnvCfg(ManagerBasedRLEnvCfg):
 
         self.sim.dt = LOW_LEVEL_ENV_CFG.sim.dt
         self.sim.render_interval = LOW_LEVEL_ENV_CFG.decimation
-        self.decimation = LOW_LEVEL_ENV_CFG.decimation*2  # 仿真执行n步，actor网络更新一次
-        self.episode_length_s = self.commands.pose_command.resampling_time_range[1]
-
+        self.decimation = LOW_LEVEL_ENV_CFG.decimation*4  # 仿真执行n步，actor网络更新一次
+        self.episode_length_s = self.commands.pose_command.resampling_time_range[1]*10
+        
+        self.scene.env_spacing = 3.5
+        # disable randomization for play
+        self.observations.policy.enable_corruption = False
+        
         if self.scene.height_scanner is not None:
             self.scene.height_scanner.update_period = (
                 self.actions.pre_trained_policy_action.low_level_decimation * self.sim.dt
             )
         if self.scene.contact_forces is not None:
             self.scene.contact_forces.update_period = self.sim.dt
+
 

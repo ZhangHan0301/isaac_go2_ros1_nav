@@ -1,5 +1,14 @@
+import dis
+from math import dist
+from cv2 import norm
+from sympy import primefactors
 import torch
 
-# 修复后的代码
-loaded_model = torch.jit.load("ckpts/unitree_go2/rough_model_7850.pt")  # ✅ 先加载
-torch.jit.save(loaded_model, "ckpts/unitree_go2/rough_go2_jit.pt")      # ✅ 再保存
+a = (35+135+180)%360 -180
+print(a)
+
+
+
+
+
+# print(b)

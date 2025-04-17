@@ -112,9 +112,10 @@ class RewardsCfg:
         weight=0.5,
         params={"std": 0.2, "command_name": "pose_command"},
     )
+    # 方向上的偏差
     orientation_tracking = RewTerm(
         func=mdp.heading_command_error_abs,
-        weight=0.1, # -0.2 变为 0.1
+        weight= -0.2, 
         params={"command_name": "pose_command"},
     )
 
@@ -126,7 +127,7 @@ class CommandsCfg:
     pose_command = mdp.UniformPose2dCommandCfg(
         asset_name="robot",
         simple_heading=False,
-        resampling_time_range=(10.0, 10.0),
+        resampling_time_range=(6.0, 8.0),
         debug_vis=True,
         ranges=mdp.UniformPose2dCommandCfg.Ranges(pos_x=(-5.0, 5.0), pos_y=(-5.0, 5.0), heading=(-math.pi, math.pi)),
     )
@@ -215,7 +216,7 @@ class MySceneCfg(InteractiveSceneCfg):
         prim_path="{ENV_REGEX_NS}/Robot/base",
         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
         attach_yaw_only=True,
-        pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[3.0, 2.0]),
+        pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
         debug_vis=True,
         mesh_prim_paths=["/World/ground"],
     )

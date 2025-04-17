@@ -66,8 +66,16 @@ sys.path.append(str(ROOT_DIR))
 import navigation
 import isaaclab_tasks  # noqa: F401
 from isaaclab_tasks.utils import get_checkpoint_path, parse_env_cfg
+import go2_ctrl
+import carb
+import omni
 
-torch.set_printoptions(precision=2, sci_mode=False)
+
+system_input = carb.input.acquire_input_interface()
+system_input.subscribe_to_keyboard_events(
+    omni.appwindow.get_default_app_window().get_keyboard(), go2_ctrl.sub_keyboard_event)
+
+
 def main():
     """Play with RSL-RL agent."""
     # parse configuration
@@ -142,10 +150,8 @@ def main():
         # run everything in inference mode
         with torch.inference_mode():
             # agent stepping
-            # print("obs ", obs[0][0:10])
             actions = policy(obs)
             # env stepping
-            # print('action ', actions)
             obs, _, _, _ = env.step(actions)
         if args_cli.video:
             timestep += 1

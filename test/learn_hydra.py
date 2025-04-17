@@ -11,3 +11,4 @@ def my_app(cfg: DictConfig)->None:
 
 if __name__ == "__main__":
     my_app()
+

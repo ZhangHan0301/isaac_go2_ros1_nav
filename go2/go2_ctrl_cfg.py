@@ -74,6 +74,8 @@ unitree_go2_rough_cfg = {
         'resume': False, 
         'load_run': 'unitree_go2', 
         'load_checkpoint': 'rough_model_7850.pt'
+        # 'load_checkpoint': 'ac_weights_last.pt'
+        
 }
 unitree_go2_nav_cfg = {
     'seed': 66,

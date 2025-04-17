@@ -13,7 +13,7 @@ import isaaclab.utils.math as math_utils
 from isaaclab.assets import Articulation
 from isaaclab.managers import ActionTerm, ActionTermCfg, ObservationGroupCfg, ObservationManager
 from isaaclab.markers import VisualizationMarkers
-from isaaclab.markers.config import BLUE_ARROW_X_MARKER_CFG, GREEN_ARROW_X_MARKER_CFG
+from isaaclab.markers.config import BLUE_ARROW_X_MARKER_CFG, GREEN_ARROW_X_MARKER_CFG, RED_ARROW_X_MARKER_CFG
 from isaaclab.utils import configclass
 from isaaclab.utils.assets import check_file_path, read_file
 
@@ -94,6 +94,7 @@ class PreTrainedPolicyAction(ActionTerm):
         Args:
             actions (torch.Tensor): 导航规划器输出的动作指令---> 赋值给self._raw_actions
         """
+        # print("action ", actions)
         self._raw_actions[:] = actions
         
 
@@ -119,17 +120,18 @@ class PreTrainedPolicyAction(ActionTerm):
             # create markers if necessary for the first tome
             if not hasattr(self, "base_vel_goal_visualizer"):
                 # -- goal
-                marker_cfg = GREEN_ARROW_X_MARKER_CFG.copy()
+                # marker_cfg = GREEN_ARROW_X_MARKER_CFG.copy()
+                marker_cfg = RED_ARROW_X_MARKER_CFG.copy()
                 marker_cfg.prim_path = "/Visuals/Actions/velocity_goal"
-                marker_cfg.markers["arrow"].scale = (0.5, 0.5, 0.5)
+                marker_cfg.markers["arrow"].scale = (0.5, 0.5, 0.3)
                 self.base_vel_goal_visualizer = VisualizationMarkers(marker_cfg)
                 # -- current
                 marker_cfg = BLUE_ARROW_X_MARKER_CFG.copy()
                 marker_cfg.prim_path = "/Visuals/Actions/velocity_current"
-                marker_cfg.markers["arrow"].scale = (0.5, 0.5, 0.5)
+                marker_cfg.markers["arrow"].scale = (0.5, 0.3, 0.2)
                 self.base_vel_visualizer = VisualizationMarkers(marker_cfg)
             # set their visibility to true
-            self.base_vel_goal_visualizer.set_visibility(True)
+            # self.base_vel_goal_visualizer.set_visibility(True)
             self.base_vel_visualizer.set_visibility(True)
         else:
             if hasattr(self, "base_vel_goal_visualizer"):
