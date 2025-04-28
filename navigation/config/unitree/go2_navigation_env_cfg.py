@@ -142,7 +142,7 @@ class RewardsCfg:
     )
     obstacle_reward = RewTerm(
         func=mdp.obstacle_reward,
-        weight= 0.2,
+        weight= 1.0,
         params={ "z_threshold":-0.2, 
                 "d_safe":0.8 },
     )

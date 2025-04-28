@@ -46,7 +46,7 @@ class Go2SimCfg(InteractiveSceneCfg):
                 size=(50, 50),
                 obstacle_width_range=(0.5, 1.0),
                 obstacle_height_range=(1.0, 2.0),
-                num_obstacles=10,
+                num_obstacles=50,
                 obstacles_distance=2.0,
                 border_width=5,
                 avoid_positions=[[0, 0]]
@@ -90,7 +90,7 @@ class Go2SimCfg(InteractiveSceneCfg):
         prim_path="{ENV_REGEX_NS}/Go2/base",
         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20)), 
         attach_yaw_only=True,
-        pattern_cfg=patterns.GridPatternCfg(resolution=1.0, size=[3.0, 2.0]), 
+        pattern_cfg=patterns.GridPatternCfg(resolution=0.5, size=[3.0, 2.0]), 
         debug_vis=True,
         mesh_prim_paths=["/World/ground"],
     )

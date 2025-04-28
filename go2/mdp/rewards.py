@@ -57,5 +57,5 @@ def yaw_alignment_reward(env: ManagerBasedRLEnv,
         reward,
         torch.zeros_like(reward)
     )
-    print("yaw reward ",reward)
+    # print("yaw reward ",reward)
     return reward

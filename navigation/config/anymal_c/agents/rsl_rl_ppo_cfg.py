@@ -10,9 +10,9 @@ from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, R
 
 @configclass
 class NavigationEnvPPORunnerCfg(RslRlOnPolicyRunnerCfg):
-    num_steps_per_env = 20
+    num_steps_per_env = 10
     max_iterations = 10000
-    save_interval = 50
+    save_interval = 1000
     experiment_name = "anymal_c_navigation"
     empirical_normalization = False
     policy = RslRlPpoActorCriticCfg(

@@ -10,7 +10,7 @@
 import argparse
 
 from isaaclab.app import AppLauncher
-
+import numpy as np
 # local imports
 import cli_args  # isort: skip
 
@@ -142,10 +142,15 @@ def main():
         # run everything in inference mode
         with torch.inference_mode():
             # agent stepping
-            # print("obs ", obs[0][0:10])
+            # print("obs ", obs[0])
+            # print("obs ", obs.shape())
             actions = policy(obs)
             # env stepping
             # print('action ', actions)
+            with open("obs.txt", "w") as f:
+                np.savetxt(f, obs[0].cpu().numpy(), fmt="%.5f", delimiter=" ")
+                f.write("actions \n")
+                np.savetxt(f, actions[0].cpu().numpy(), fmt="%.5f", delimiter=" ") 
             obs, _, _, _ = env.step(actions)
         if args_cli.video:
             timestep += 1

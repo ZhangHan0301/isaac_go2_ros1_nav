@@ -41,7 +41,7 @@ def object_reached_goal_reward(
     # diff = current_robot_pose - des_pos_b
     distances = torch.norm(des_pos_b, dim=1)
     # 创建奖励张量（批量处理）
-    base_reward = 100.0  # 成功到达的奖励值
+    base_reward = 10.0  # 成功到达的奖励值
     rewards = torch.where(
         distances < threshold,
         torch.full_like(distances, base_reward),
@@ -102,7 +102,6 @@ def base_lin_vel_penalize(
     
     # 提取X轴线速度 [num_envs, ]
     line_x_vel = asset.data.root_lin_vel_b[:, 0]
-  
     # 构建三种情况的掩码
     negative_mask = line_x_vel < 0
     over_threshold_mask = line_x_vel > speed_limit
@@ -124,7 +123,7 @@ def base_lin_vel_penalize(
     # 获取所有环境实例的y轴速度绝对值
     line_y_vel_abs = torch.abs(asset.data.root_lin_vel_b[:, 1]) 
     
-    vel_y_penalty = line_y_vel_abs*-2.5
+    vel_y_penalty = line_y_vel_abs*-1.0
     
     #print("line vel reward ", reward)
     return reward + vel_y_penalty
@@ -176,13 +175,13 @@ def obstacle_reward(env: ManagerBasedRLEnv,
     
     obstacle_distance = torch.norm(obstacle_point_xy, p=2, dim=2)  # 形状 (2, 3)
 
-    # 将范数赋值给符合条件的第三个元素，其余置零
+    # 将高度大于阈值的赋值obstacle_distance，其余置零
     # result = ray_data_w.clone()
     ray_data_w[:, :, 2] = torch.where(mask, obstacle_distance, torch.zeros_like(third_elements))
     last_elements = ray_data_w[:, :, -1]
     reward =  torch.where(
         last_elements[:,:]<d_safe,
-        last_elements.cos()+1.0,
+        last_elements+5.0,
         torch.zeros_like(last_elements)
     )
     reward *= last_elements 

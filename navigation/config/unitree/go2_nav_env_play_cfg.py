@@ -42,6 +42,8 @@ from .terrain_cfg import HfUniformDiscreteObstaclesTerrainCfg
 from .terrain import *
 
 
+
+
 # LOW_LEVEL_ENV_CFG = AnymalCFlatEnvCfg()
 LOW_LEVEL_ENV_CFG = UnitreeGo2RoughEnvCfg()
 
@@ -131,7 +133,7 @@ class RewardsCfg:
     base_line_vel = RewTerm(
         func=mdp.base_lin_vel_penalize,
         weight=0.2,
-        params={"speed_limit":1.5}
+        params={"speed_limit":0.8}
     )
     # 取值范围 -1.5 - 0.5
     yaw_alignment_reward = RewTerm(
@@ -159,7 +161,7 @@ class CommandsCfg:
         simple_heading=False,
         resampling_time_range=(20.0, 20.0),
         debug_vis=True,
-        ranges=mdp.UniformPose2dCommandCfg.Ranges(pos_x=(5.0, 5.0), pos_y=(5.0, 5.0), heading=(0, 0)),
+        ranges=mdp.UniformPose2dCommandCfg.Ranges(pos_x=(5.0, 8.0), pos_y=(10.0, 10.0), heading=(0, 0)),
     )
 
 # 终止条件
@@ -202,9 +204,9 @@ class MySceneCfg(InteractiveSceneCfg):
             sub_terrains={"t1": HfUniformDiscreteObstaclesTerrainCfg(
                 seed=0,
                 size=(20, 20),
-                obstacle_width_range=(0.5, 1.0),
-                obstacle_height_range=(0.1, 1.5),
-                num_obstacles=10,
+                obstacle_width_range=(0.2, 1.0),
+                obstacle_height_range=(0.5, 1.5),
+                num_obstacles=50,
                 obstacles_distance=3.0,
                 border_width=5,
                 avoid_positions=[[0, 0.0]]
@@ -277,7 +279,6 @@ class NavigationEnvPlayCfg(ManagerBasedRLEnvCfg):
         self.scene.env_spacing = 3.5
         # disable randomization for play
         self.observations.policy.enable_corruption = False
-        
         if self.scene.height_scanner is not None:
             self.scene.height_scanner.update_period = (
                 self.actions.pre_trained_policy_action.low_level_decimation * self.sim.dt
