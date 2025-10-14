@@ -7,16 +7,16 @@ from typing import TYPE_CHECKING, Literal
 import carb
 import omni.physics.tensors.impl.api as physx
 
-import omni.isaac.lab.sim as sim_utils
-import omni.isaac.lab.utils.math as math_utils
-from omni.isaac.lab.actuators import ImplicitActuator
-from omni.isaac.lab.assets import Articulation, DeformableObject, RigidObject
-from omni.isaac.lab.managers import EventTermCfg, ManagerTermBase, SceneEntityCfg
-from omni.isaac.lab.terrains import TerrainImporter
+import isaaclab.sim as sim_utils
+import isaaclab.utils.math as math_utils
+from isaaclab.actuators import ImplicitActuator
+from isaaclab.assets import Articulation, DeformableObject, RigidObject
+from isaaclab.managers import EventTermCfg, ManagerTermBase, SceneEntityCfg
+from isaaclab.terrains import TerrainImporter
 
 if TYPE_CHECKING:
-    from omni.isaac.lab.envs import ManagerBasedEnv
-from omni.isaac.lab.sensors import ContactSensor
+    from isaaclab.envs import ManagerBasedEnv
+from isaaclab.sensors import ContactSensor
     
 def contact_reset(
     env: ManagerBasedEnv,

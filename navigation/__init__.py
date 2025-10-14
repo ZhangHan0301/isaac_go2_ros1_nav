@@ -7,3 +7,5 @@
 
 from .config import anymal_c
 from .config import unitree
+from .config import aau_rover
+from .config import jetbot

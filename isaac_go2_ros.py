@@ -6,8 +6,7 @@ simulation_app = SimulationApp({"headless": False, "anti_aliasing": 0,
                                 "hide_ui": True})
 # import rclpy
 import torch
-import omni
-import carb
+
 import go2.go2_ctrl as go2_ctrl
 # import ros2.go2_ros2_bridge as go2_ros2_bridge
 from go2.go2_env import Go2RSLEnvCfg, camera_follow
@@ -16,14 +15,14 @@ import go2.go2_sensors as go2_sensors
 import time
 import os
 import hydra
-from omni.isaac.lab.sensors import RayCasterCfg, patterns,RayCaster
+from isaaclab.sensors import RayCasterCfg, patterns,RayCaster, ContactSensor
 import rospy
 import sensor_msgs.point_cloud2 as pc2
 from sensor_msgs.msg import PointCloud2
 import std_msgs.msg
 import numpy as np
 
-from omni.isaac.lab.utils.assets import ISAACLAB_NUCLEUS_DIR
+from isaaclab.utils.assets import ISAACLAB_NUCLEUS_DIR
 torch.set_printoptions(precision=4, sci_mode=False) 
 
 def quaternion_to_rotation_matrix(quat: torch.Tensor) -> torch.Tensor:
@@ -69,22 +68,6 @@ def run_simulator(cfg):
     go2_ctrl.init_base_vel_cmd(cfg.num_envs)
     # env, policy = go2_ctrl.get_rsl_flat_policy(go2_env_cfg)
     env, policy = go2_ctrl.get_rsl_rough_policy(go2_env_cfg)
-
-    # # Simulation environment
-    # if (cfg.env_name == "obstacle-dense"):
-    #     sim_env.create_obstacle_dense_env() # obstacles dense
-    # elif (cfg.env_name == "obstacle-medium"):
-    #     sim_env.create_obstacle_medium_env() # obstacles medium
-    # elif (cfg.env_name == "obstacle-sparse"):
-    #     sim_env.create_obstacle_sparse_env() # obstacles sparse
-    # elif (cfg.env_name == "warehouse"):
-    #     sim_env.create_warehouse_env() # warehouse
-    # elif (cfg.env_name == "warehouse-forklifts"):
-    #     sim_env.create_warehouse_forklifts_env() # warehouse forklifts
-    # elif (cfg.env_name == "warehouse-shelves"):
-    #     sim_env.create_warehouse_shelves_env() # warehouse shelves
-    # elif (cfg.env_name == "full-warehouse"):
-    #     sim_env.create_full_warehouse_env() # full warehouse
 
     # Sensor setup
     sm = go2_sensors.SensorManager(cfg.num_envs)
@@ -137,13 +120,6 @@ def run_simulator(cfg):
             third_elements = ray_hit_w[:, :, 2]
             mask = third_elements > -0.3
             
-            
-            
-            obstacle_point_xy = ray_hit_w[...,:2]
-            obstacle_distance = torch.norm(obstacle_point_xy, p=2, dim=2)  # 形状 (2, 3)
-            print("raw ray hit ", ray_hit_w)
-            ray_hit_w[:, :, 2] = torch.where(mask, obstacle_distance, torch.zeros_like(third_elements))
-            print("ray hit w ", ray_hit_w)
             # print(obstacle_distance)
             # print(obstacle_point_xy)
             # ray_hit_np = obstacle_point_xy.cpu().numpy()
@@ -156,6 +132,19 @@ def run_simulator(cfg):
             R_transposed = R.transpose(1, 2)
             ray_hits_local = torch.bmm(ray_hit_w, R)
             # print("p robot ", ray_hits_local)
+            
+            ##################### test collision_penalty #####################
+            contact_sensor: ContactSensor = env.env.scene["contact_forces"]
+            
+            force_matrix = contact_sensor.data.force_matrix_w.view(1,-1,3)
+            print("force_matrix  size", force_matrix.size())
+            print("force matrix ", force_matrix)
+            
+            # Calculating the force and applying a penalty if collision forces are detected
+            normalized_forces = torch.norm(force_matrix, dim=1)
+            forces_active = torch.sum(normalized_forces, dim=-1) > 1
+            collision_reward = torch.where(forces_active, 1.0, 0.0)
+            print("collision rewared ", collision_reward)
             
             
             # Camera follow

@@ -4,8 +4,8 @@ import torch
 import numpy as np
 
 # policy_path = "ckpts/unitree_go2/go2/model_9000.pt"
-policy_path = "/home/nav/isaac_new/isaac_go2_ros1_nav/logs/rsl_rl/unitree/2025-04-14_18-03-10/exported/policy_9000.pt"
-policy = torch.load(policy_path, weights_only=True).eval()
+policy_path = "/home/nav/isaac_new/RLRoverLab/rover_envs/envs/navigation/robots/aau_rover/policies/best_agent2.pt"
+policy = torch.load(policy_path, weights_only=True)
 
 print("policy ",policy)
 
@@ -16,7 +16,7 @@ goal_command[1] = -0.96
 goal_command[3] = -0.88
 
 line_vel_command = np.zeros(3)
-lidar_input = np.zeros(651) -0.6
+lidar_input = np.zeros(961) -0.6
 
 # 拼接成一个一维数组
 combined_array = np.concatenate([line_vel_command,goal_command, lidar_input])

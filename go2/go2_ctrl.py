@@ -2,10 +2,13 @@ import os
 import torch
 import carb
 import gymnasium as gym
-from omni.isaac.lab.envs import ManagerBasedEnv
+# from omni.isaac.lab.envs import ManagerBasedEnv
+from isaaclab.envs import ManagerBasedEnv
 from go2.go2_ctrl_cfg import unitree_go2_flat_cfg, unitree_go2_rough_cfg, unitree_go2_nav_cfg
-from omni.isaac.lab_tasks.utils.wrappers.rsl_rl import RslRlVecEnvWrapper, RslRlOnPolicyRunnerCfg
-from omni.isaac.lab_tasks.utils import get_checkpoint_path
+# from isaaclab_tasks.utils.wrappers.rsl_rl import RslRlVecEnvWrapper, RslRlOnPolicyRunnerCfg
+from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper, RslRlOnPolicyRunnerCfg
+from isaaclab_tasks.utils import get_checkpoint_path
+# from omni.isaac.lab_tasks.utils import get_checkpoint_path
 from rsl_rl.runners import OnPolicyRunner
 
 base_vel_cmd_input = None

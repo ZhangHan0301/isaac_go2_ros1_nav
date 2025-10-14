@@ -1,88 +1,112 @@
-from typing import Optional
+import gym
+from gym import spaces
 import numpy as np
-import gymnasium as gym
+import torch
+from abc import ABC, abstractmethod
 
 
-class GridWorldEnv(gym.Env):
+# ===================== 底层环境 =====================
+class CounterEnv(gym.Env):
+    """简单计数环境"""
+    def __init__(self):
+        super().__init__()
+        self.action_space = spaces.Discrete(2)  # 0:+1, 1:-1
+        self.observation_space = spaces.Box(low=-100, high=100, shape=(1,), dtype=np.int32)
+        self.state = 0
+        self.episode_length_buf = 0  # 底层 buffer
 
-    def __init__(self, size: int = 5):
-        # The size of the square grid
-        self.size = size
+    def reset(self):
+        self.state = 0
+        self.episode_length_buf = 0
+        return np.array([self.state], dtype=np.int32)
 
-        # Define the agent and target location; randomly chosen in `reset` and updated in `step`
-        self._agent_location = np.array([-1, -1], dtype=np.int32)
-        self._target_location = np.array([-1, -1], dtype=np.int32)
-
-        # Observations are dictionaries with the agent's and the target's location.
-        # Each location is encoded as an element of {0, ..., `size`-1}^2
-        self.observation_space = gym.spaces.Dict(
-            {
-                "agent": gym.spaces.Box(0, size - 1, shape=(2,), dtype=int),
-                "target": gym.spaces.Box(0, size - 1, shape=(2,), dtype=int),
-            }
-        )
-
-        # We have 4 actions, corresponding to "right", "up", "left", "down"
-        self.action_space = gym.spaces.Discrete(4)
-        # Dictionary maps the abstract actions to the directions on the grid
-        self._action_to_direction = {
-            0: np.array([1, 0]),  # right
-            1: np.array([0, 1]),  # up
-            2: np.array([-1, 0]),  # left
-            3: np.array([0, -1]),  # down
-        }
-        
-    def _get_obs(self):
-        return {"agent": self._agent_location, "target": self._target_location}
-    
-    def _get_info(self):
-        return {
-            "distance": np.linalg.norm(
-                self._agent_location - self._target_location, ord=1
-            )
-        }
-    
-    def reset(self, seed: Optional[int] = None, options: Optional[dict] = None):
-        # We need the following line to seed self.np_random
-        super().reset(seed=seed)
-
-        # Choose the agent's location uniformly at random
-        self._agent_location = self.np_random.integers(0, self.size, size=2, dtype=int)
-
-        # We will sample the target's location randomly until it does not coincide with the agent's location
-        self._target_location = self._agent_location
-        while np.array_equal(self._target_location, self._agent_location):
-            self._target_location = self.np_random.integers(
-                0, self.size, size=2, dtype=int
-            )
-
-        observation = self._get_obs()
-        info = self._get_info()
-
-        return observation, info
-    
     def step(self, action):
-        # Map the action (element of {0,1,2,3}) to the direction we walk in
-        direction = self._action_to_direction[action]
-        # We use `np.clip` to make sure we don't leave the grid bounds
-        self._agent_location = np.clip(
-            self._agent_location + direction, 0, self.size - 1
-        )
+        self.state += 1 if action == 0 else -1
+        self.episode_length_buf += 1
+        reward = -1
+        done = self.state == 10
+        if done:
+            reward = 10
+        return np.array([self.state], dtype=np.int32), reward, done, {}
 
-        # An environment is completed if and only if the agent has reached the target
-        terminated = np.array_equal(self._agent_location, self._target_location)
-        truncated = False
-        reward = 1 if terminated else 0  # the agent is only reached at the end of the episode
-        observation = self._get_obs()
-        info = self._get_info()
+    def render(self, mode="human"):
+        print(f"State: {self.state}, Step buffer: {self.episode_length_buf}")
 
-        return observation, reward, terminated, truncated, info
 
-gym.register(
-    id="gymnasium_env/GridWorld-v0",
-    entry_point=GridWorldEnv,
-)
+# ===================== VecEnv 抽象基类 =====================
+class VecEnv(ABC):
+    def __init__(self):
+        self.num_envs = 0
 
-gym.make("gymnasium_env/GridWorld-v0")
-gym.make("gymnasium_env/GridWorld-v0", max_episode_steps=100)
-env = gym.make("gymnasium_env/GridWorld-v0", size=10)
+    @abstractmethod
+    def reset(self):
+        pass
+
+    @abstractmethod
+    def step_async(self, actions):
+        pass
+
+    @abstractmethod
+    def step_wait(self):
+        pass
+
+    def step(self, actions):
+        self.step_async(actions)
+        return self.step_wait()
+
+
+# ===================== RSL-RL 风格 VecEnv 封装 =====================
+class RslRlVecEnvWrapper(VecEnv):
+    """封装多个 CounterEnv，支持 episode_length_buf"""
+    def __init__(self, env_fns):
+        super().__init__()
+        self.envs = [fn() for fn in env_fns]
+        self.num_envs = len(self.envs)
+        self._actions = None
+
+    @property
+    def episode_length_buf(self):
+        # 返回所有 env 的 buffer
+        return np.array([env.episode_length_buf for env in self.envs])
+
+    @episode_length_buf.setter
+    def episode_length_buf(self, values: torch.Tensor):
+        # 支持批量写入
+        for env, val in zip(self.envs, values):
+            env.episode_length_buf = val.item()
+
+    def reset(self):
+        return np.array([env.reset() for env in self.envs])
+
+    def step_async(self, actions):
+        self._actions = actions
+
+    def step_wait(self):
+        obs, rewards, dones, infos = [], [], [], []
+        for env, action in zip(self.envs, self._actions):
+            o, r, d, i = env.step(action)
+            obs.append(o)
+            rewards.append(r)
+            dones.append(d)
+            infos.append(i)
+        return np.array(obs), np.array(rewards), np.array(dones), infos
+
+
+# ===================== 测试 =====================
+if __name__ == "__main__":
+    # 创建 3 个环境
+    env_fns = [CounterEnv for _ in range(3)]
+    env = RslRlVecEnvWrapper(env_fns)
+
+    obs = env.reset()
+    print("初始状态:", obs, "buffer:", env.episode_length_buf)
+
+    # 修改 buffer
+    env.episode_length_buf = torch.tensor([5, 10, 15])
+    print("修改后的 buffer:", env.episode_length_buf)
+
+    max_steps = 10  # 最多运行 10 步
+    for step in range(max_steps):
+        actions = [e.action_space.sample() for e in env.envs]
+        obs, rewards, done, infos = env.step(actions)
+        print("Obs:", obs, "Reward:", rewards, "Done:", done, "Buffer:", env.episode_length_buf)

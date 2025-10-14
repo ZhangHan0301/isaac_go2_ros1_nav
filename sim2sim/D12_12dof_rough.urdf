@@ -1,0 +1,389 @@
+<mujoco model="D12_12dof">
+  <compiler angle="radian" meshdir="../meshes/" eulerseq="zyx"/>
+  <option timestep="0.001" iterations="50" solver="PGS" gravity="0 0 -9.81">
+  <flag frictionloss="enable"/>
+  </option>
+  <size njmax="500" nconmax="100"/>
+  <visual>
+    <headlight ambient="0.3 0.3 0.3" diffuse="0.7 0.7 0.7" specular="0.2 0.2 0.2"/>
+    <quality shadowsize="4096"/>
+    <map znear="0.05"/>
+  </visual>
+
+  <default>
+    <joint limited="true"/>
+    <motor ctrllimited="true"/>
+    <geom  condim="4" contype="1" conaffinity="15" solref="0.001 2" friction="0.9 0.2 0.2"/>
+    <equality solref="0.001 2"/>
+    <default class="visualgeom">
+      <geom material="visualgeom" condim="1" contype="0" conaffinity="0"/>
+    </default>
+
+    <default class="joint_param_0">
+      <joint  damping="0.01" frictionloss="0.01" armature="0.01"/>
+    </default> 
+    <default class="joint_param_1">
+      <joint  damping="2.0" frictionloss="0.01" armature="0.01"/>
+    </default>
+    <default class="joint_param_2">
+      <joint  damping="1.0" frictionloss="0.01" armature="0.01"/>
+    </default>
+    <default class="joint_param_3">
+      <joint  damping="0.01" frictionloss="0.01" armature="0.15"/>
+    </default> 
+    <default class="joint_param_4">
+      <joint  damping="1.0" frictionloss="0.01" armature="0.04"/>
+    </default> 
+    <default class="joint_param_5">
+      <joint  damping="0.01" frictionloss="0.01" armature="0.01"/>
+    </default> 
+    <default class="joint_param_6">
+      <joint  damping="0.01" frictionloss="0.01" armature="0.10"/>
+    </default> 
+    <default class="joint_param_7">
+      <joint  damping="2.0" frictionloss="0.01" armature="0.01"/>
+    </default>
+    <default class="joint_param_8">
+      <joint  damping="1.0" frictionloss="0.01" armature="0.01"/>
+    </default>
+    <default class="joint_param_9">
+      <joint  damping="0.01" frictionloss="0.01" armature="0.15"/>
+    </default> 
+    <default class="joint_param_10">
+      <joint  damping="1.0" frictionloss="0.01" armature="0.04"/>
+    </default> 
+    <default class="joint_param_11">
+      <joint  damping="0.01" frictionloss="0.01" armature="0.01"/>
+    </default> 
+  </default>
+
+    <!-- <default class="joint_param_0">
+      <joint  damping="0.01" frictionloss="0.01" armature="0.126"/>
+    </default> 
+    <default class="joint_param_1">
+      <joint  damping="3.0" frictionloss="0.01" armature="0.017"/>
+    </default>
+    <default class="joint_param_2">
+      <joint  damping="2.8" frictionloss="0.01" armature="0.126"/>
+    </default>
+    <default class="joint_param_3">
+      <joint  damping="3.8" frictionloss="0.01" armature="0.203"/>
+    </default> 
+    <default class="joint_param_4">
+      <joint  damping="6.0" frictionloss="0.01" armature="0.02"/>
+    </default> 
+    <default class="joint_param_5">
+      <joint  damping="1.6" frictionloss="0.01" armature="0.01"/>
+    </default> 
+    <default class="joint_param_6">
+      <joint  damping="0.01" frictionloss="0.01" armature="0.126"/>
+    </default> 
+    <default class="joint_param_7">
+      <joint  damping="3.0" frictionloss="0.01" armature="0.017"/>
+    </default> 
+    <default class="joint_param_8">
+      <joint  damping="2.8" frictionloss="0.01" armature="0.126"/>
+    </default> 
+    <default class="joint_param_9">
+      <joint  damping="3.8" frictionloss="0.01" armature="0.203"/>
+    </default> 
+    <default class="joint_param_10">
+      <joint  damping="6.0" frictionloss="0.01" armature="0.02"/>
+    </default> 
+    <default class="joint_param_11">
+      <joint  damping="1.6" frictionloss="0.01" armature="0.01"/>
+    </default>
+  </default> -->
+
+  <asset>
+    
+    <texture name="skybox" type="skybox" builtin="gradient" rgb1="0.2 0.3 0.4" rgb2="0 0 0" width="1000" height="1000" mark="random" random="0.001" markrgb="1 1 1"/>
+    <texture name="texplane" type="2d" builtin="checker" rgb1="0.2 0.3 0.4" rgb2="0.1 0.15 0.2" width="512" height="512" mark="cross" markrgb="0.8 0.8 0.8"/>
+
+    <material name="matplane" reflectance="0" texture="texplane" texrepeat="1 1" texuniform="true"/>
+    <material name="visualgeom"  rgba="0.79216 0.81961 0.93333 1"/>
+
+    <mesh name="base_link" file="base_link.STL"/>
+    <mesh name="right_hip_roll_link" file="right_hip_roll_link.STL"/>
+    <mesh name="right_hip_yaw_link" file="right_hip_yaw_link.STL"/>
+    <mesh name="right_hip_pitch_link" file="right_hip_pitch_link.STL"/>
+    <mesh name="right_knee_pitch_link" file="right_knee_pitch_link.STL"/>
+    <mesh name="right_ankle_pitch_link" file="right_ankle_pitch_link.STL"/>
+    <mesh name="right_ankle_roll_link" file="right_ankle_roll_link.STL"/>
+    <mesh name="left_hip_roll_link" file="left_hip_roll_link.STL"/>
+    <mesh name="left_hip_yaw_link" file="left_hip_yaw_link.STL"/>
+    <mesh name="left_hip_pitch_link" file="left_hip_pitch_link.STL"/>
+    <mesh name="left_knee_pitch_link" file="left_knee_pitch_link.STL"/>
+    <mesh name="left_ankle_pitch_link" file="left_ankle_pitch_link.STL"/>
+    <mesh name="left_ankle_roll_link" file="left_ankle_roll_link.STL"/>
+
+    <hfield name="hf0" nrow="200" ncol="200" size="10 5 0.2 0.1"/>
+  </asset>
+
+  <worldbody>
+    <light directional="true" pos="0 0 5" dir="0 0 -1"/>
+    <geom name="ground" type="plane" size="0 100 0.1" pos="0 0 0" quat="1 0 0 0" material="matplane" condim="1" conaffinity="15"/>
+
+    <!-- 添加台阶 10厘米  -->
+    <body name="step1" pos="6 0 0.0">
+      <geom name="step1_geom" type="box" size="0.3 4 0.1" rgba="0.6 0.4 0.2 1" />
+    </body>
+    <body name="step2" pos="6.3 0 0.1">
+      <geom name="step2_geom" type="box" size="0.3 4 0.1" rgba="0.6 0.4 0.2 1" />
+    </body>
+    <body name="step3" pos="6.6 0 0.2">
+      <geom name="step3_geom" type="box" size="0.3 4 0.1" rgba="0.6 0.4 0.2 1" />
+    </body>
+    <body name="step4" pos="6.9 0 0.3">
+      <geom name="step4_geom" type="box" size="0.3 4 0.1" rgba="0.6 0.4 0.2 1" />
+    </body>
+    <body name="step5" pos="7.8 0 0.3">
+      <geom name="step5_geom" type="box" size="0.3 4 0.1" rgba="0.6 0.4 0.2 1" />
+    </body>
+    <body name="step6" pos="8.1 0 0.2">
+      <geom name="step6_geom" type="box" size="0.3 4 0.1" rgba="0.6 0.4 0.2 1" />
+    </body>
+    <body name="step7" pos="8.4 0 0.1">
+      <geom name="step7_geom" type="box" size="0.3 4 0.1" rgba="0.6 0.4 0.2 1" />
+    </body>
+    <body name="step8" pos="8.7 0 0.0">
+      <geom name="step8_geom" type="box" size="0.3 4 0.1" rgba="0.6 0.4 0.2 1" />
+    </body>
+
+    <!-- 添加台阶 15厘米 -->
+    <body name="step11" pos="13 0 0.0">
+      <geom name="step11_geom" type="box" size="0.5 4 0.15" rgba="0.6 0.4 0.2 1" />
+    </body>
+    <body name="step12" pos="13.6 0 0.15">
+      <geom name="step12_geom" type="box" size="0.5 4 0.15" rgba="0.6 0.4 0.2 1" />
+    </body>
+    <body name="step13" pos="14.2 0 0.3">
+      <geom name="step13_geom" type="box" size="0.5 4 0.15" rgba="0.6 0.4 0.2 1" />
+    </body>
+    <body name="step14" pos="14.8 0 0.45">
+      <geom name="step14_geom" type="box" size="0.5 4 0.15" rgba="0.6 0.4 0.2 1" />
+    </body>
+    <body name="step15" pos="15.9 0 0.45">
+      <geom name="step15_geom" type="box" size="0.5 4 0.15" rgba="0.6 0.4 0.2 1" />
+    </body>
+    <body name="step16" pos="16.5 0 0.3">
+      <geom name="step16_geom" type="box" size="0.5 4 0.15" rgba="0.6 0.4 0.2 1" />
+    </body>
+    <body name="step17" pos="17.1 0 0.15">
+      <geom name="step17_geom" type="box" size="0.5 4 0.15" rgba="0.6 0.4 0.2 1" />
+    </body>
+    <body name="step18" pos="17.7 0 0.0">
+      <geom name="step18_geom" type="box" size="0.5 4 0.15" rgba="0.6 0.4 0.2 1" />
+    </body>
+
+    <!-- 添加台阶 20厘米 -->
+    <body name="step21" pos="21 0 0.0">
+      <geom name="step21_geom" type="box" size="1.0 4 0.20" rgba="0.6 0.4 0.2 1" />
+    </body>
+
+    <!-- 添加台阶 25厘米 -->
+    <body name="step22" pos="25 0 0.0">
+      <geom name="step22_geom" type="box" size="1.0 4 0.25" rgba="0.6 0.4 0.2 1" />
+    </body>
+
+    <!-- 添加台阶 30厘米 -->
+    <body name="step23" pos="29 0 0.0">
+      <geom name="step23_geom" type="box" size="1.0 4 0.30" rgba="0.6 0.4 0.2 1" />
+    </body>
+
+    <!-- 添加台阶 35厘米 -->
+    <body name="step24" pos="33 0 0.0">
+      <geom name="step24_geom" type="box" size="1.0 4 0.35" rgba="0.6 0.4 0.2 1" />
+    </body>
+
+    <!-- 添加台阶 40厘米 -->
+    <body name="step25" pos="37 0 0.0">
+      <geom name="step25_geom" type="box" size="1.0 4 0.40" rgba="0.6 0.4 0.2 1" />
+    </body>
+
+
+
+    <body name="base_link" pos="0.0 0.0 1.095">
+      <geom type="mesh" group="1" mesh="base_link"/>
+      <geom type="mesh" mesh="base_link" class="visualgeom"/>
+      <inertial pos="-0.03046571 0.00270456 0.03760821" mass="16.81356656" fullinertia="0.64515160 0.58110713 0.16626209 -0.00183392 -0.03473756 -0.01011698"/>
+     <joint name="laser_yaw_joint" type="free" limited="false"/>
+      <site name="imu" size="0.01" pos="0.0 0.0 0.0"/>
+      <!-- 添加17*11的激光阵列 -->
+      <replicate count="17" offset="0.1 0 0">
+        <replicate count="11" offset="0 0.1 0">
+          <site name="laser_{x}_{y}" pos="-0.8 -0.5 0" zaxis="0 0 -1" size="0.01" rgba="1 0 0 1" group="2"/>
+        </replicate>
+      </replicate>
+
+      <body name="left_hip_roll_link" pos="-0.0471723 0.1 -0.19">
+        <inertial pos="0.039586 -3.6e-05 0.014822" quat="-0.00107472 0.662706 0.00145172 0.748878" mass="1.374615" diaginertia="0.001226 0.001492 0.001869"/>
+        <joint name="left_hip_roll_joint" pos="0 0 0" axis="1 0 0" range="-0.349 0.349" class="joint_param_0"/>
+        <geom type="mesh" mesh="left_hip_roll_link"/>
+        <geom type="mesh" mesh="left_hip_roll_link" class="visualgeom"/>
+        <body name="left_hip_yaw_link" pos="0.054 0 -0.0178">
+          <inertial pos="6.3e-05 -0.001514 -0.047157" quat="0.709984 -0.00964058 0.000939459 0.704151" mass="0.385914" diaginertia="0.000714 0.000823 0.000223"/>
+          <joint name="left_hip_yaw_joint" pos="0 0 0" axis="0 0 1" range="-0.7854 0.7854" class="joint_param_1"/>
+          <geom type="mesh" mesh="left_hip_yaw_link"/>
+          <geom type="mesh" mesh="left_hip_yaw_link" class="visualgeom"/>
+          <body name="left_hip_pitch_link" pos="0 0.00900007 -0.089">
+            <inertial pos="0.00334276 0.02603890 -0.11517611" quat="0.934415 -0.0583172 -0.00536928 0.351339" mass="6.21937338" diaginertia="0.07033056 0.06989278 0.01021418"/>
+            <joint name="left_hip_pitch_joint" pos="0 0 0" axis="0 1 0" range="-1.0472 1.0472" class="joint_param_2"/>
+            <geom type="mesh" mesh="left_hip_pitch_link"/>
+            <geom type="mesh" mesh="left_hip_pitch_link" class="visualgeom"/>
+            <body name="left_knee_pitch_link" pos="0 -0.0092 -0.38">
+              <inertial pos="-0.02363022 0.00005215 -0.21046585" quat="0.72645 0.0295478 0.0389023 0.685481" mass="2.44075948" diaginertia="0.04319157 0.04385624 0.00190256"/>
+              <joint name="left_knee_pitch_joint" pos="0 0 0" axis="0 1 0" range="-0.0873 2.0944" class="joint_param_3"/>
+              <geom type="mesh" mesh="left_knee_pitch_link"/>
+              <geom type="mesh" mesh="left_knee_pitch_link" class="visualgeom"/>
+              <body name="left_ankle_pitch_link" pos="0 0 -0.380027">
+                <inertial pos="0 0.000228 0" quat="0 0.707107 0 0.707107" mass="0.0512" diaginertia="6e-06 5e-06 4e-06"/>
+                <joint name="left_ankle_pitch_joint" pos="0 0 0" axis="0 1 0" range="-0.5236 0.5236" class="joint_param_4"/>
+                <geom type="mesh" mesh="left_ankle_pitch_link"/>
+                <geom type="mesh" mesh="left_ankle_pitch_link" class="visualgeom"/>
+                <body name="left_ankle_roll_link">
+                  <inertial pos="0.016965 1.6e-05 -0.016296" quat="0.000420005 0.729734 -5.2682e-05 0.683731" mass="0.541882" diaginertia="0.00186771 0.001737 0.000280288"/>
+                  <joint name="left_ankle_roll_joint" pos="0 0 0" axis="1 0 0" range="-0.5236 0.5236" class="joint_param_5"/>
+                  <geom type="mesh" mesh="left_ankle_roll_link"/>
+                  <geom type="mesh" mesh="left_ankle_roll_link" class="visualgeom"/>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+
+      <body name="right_hip_roll_link" pos="-0.047172 -0.1 -0.19">
+        <inertial pos="0.049706 1e-05 0.014847" quat="-0.00323946 0.660512 0.00224737 0.750805" mass="1.3769" diaginertia="0.001231 0.001496 0.001874"/>
+        <joint name="right_hip_roll_joint" pos="0 0 0" axis="1 0 0" range="-0.349 0.349" class="joint_param_6"/>
+        <geom type="mesh" mesh="right_hip_roll_link"/>
+        <geom type="mesh" mesh="right_hip_roll_link" class="visualgeom"/>
+        <body name="right_hip_yaw_link" pos="0.054 0 -0.0178">
+          <inertial pos="6.3e-05 0.001514 -0.047157" quat="0.704151 0.000939459 -0.00964058 0.709984" mass="0.385915" diaginertia="0.000714 0.000823 0.000223"/>
+          <joint name="right_hip_yaw_joint" pos="0 0 0" axis="0 0 1" range="-0.7854 0.7854" class="joint_param_7"/>
+          <geom type="mesh" mesh="right_hip_yaw_link"/>
+          <geom type="mesh" mesh="right_hip_yaw_link" class="visualgeom"/>
+          <body name="right_hip_pitch_link" pos="0 -0.009 -0.089">
+            <inertial pos="0.00334276 -0.02603890 -0.11517611" quat="0.934329 0.0582887 -0.00526732 -0.351573" mass="6.21937338" diaginertia="0.07033056 0.06989278 0.01021418"/>
+            <joint name="right_hip_pitch_joint" pos="0 0 0" axis="0 1 0" range="-1.0472 1.0472" class="joint_param_8"/>
+            <geom type="mesh" mesh="right_hip_pitch_link"/>
+            <geom type="mesh" mesh="right_hip_pitch_link" class="visualgeom"/>
+            <body name="right_knee_pitch_link" pos="0 0.0092 -0.38">
+              <inertial pos="-0.02363022 -0.00005215 -0.21046585" quat="0.68667 0.0375 0.0314545 0.72532" mass="2.44075948" diaginertia="0.04319157 0.04385624 0.00190256"/>
+              <joint name="right_knee_pitch_joint" pos="0 0 0" axis="0 1 0" range="-0.0873 2.0944" class="joint_param_9"/>
+              <geom type="mesh" mesh="right_knee_pitch_link"/>
+              <geom type="mesh" mesh="right_knee_pitch_link" class="visualgeom"/>
+              <body name="right_ankle_pitch_link" pos="0 0 -0.380027">
+                <inertial pos="0 0.000228 0" quat="0 0.707107 0 0.707107" mass="0.0512" diaginertia="6e-06 5e-06 4e-06"/>
+                <joint name="right_ankle_pitch_joint" pos="0 0 0" axis="0 1 0" range="-0.5236 0.5236" class="joint_param_10"/>
+                <geom type="mesh" mesh="right_ankle_pitch_link"/>
+                <geom type="mesh" mesh="right_ankle_pitch_link" class="visualgeom"/>
+                <body name="right_ankle_roll_link">
+                  <inertial pos="0.016965 1.6e-05 -0.016296" quat="0.000420005 0.729734 -5.2682e-05 0.683731" mass="0.541882" diaginertia="0.00186771 0.001737 0.000280288"/>
+                  <joint name="right_ankle_roll_joint" pos="0 0 0" axis="1 0 0" range="-0.5236 0.5236" class="joint_param_11" />
+                  <geom type="mesh" mesh="right_ankle_roll_link"/>
+                  <geom type="mesh" mesh="right_ankle_roll_link" class="visualgeom"/>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+
+      
+    </body>
+  </worldbody>
+
+  <contact>
+    <exclude body1="base_link" body2="right_hip_roll_link"/>
+    <exclude body1="right_hip_roll_link" body2="right_hip_yaw_link"/>
+    <exclude body1="right_hip_yaw_link" body2="right_hip_pitch_link"/>
+    <exclude body1="right_hip_pitch_link" body2="right_knee_pitch_link"/>
+    <exclude body1="right_knee_pitch_link" body2="right_ankle_pitch_link"/>
+    <exclude body1="right_ankle_pitch_link" body2="right_ankle_roll_link"/>
+    <exclude body1="base_link" body2="right_hip_yaw_link"/>
+    <exclude body1="right_hip_roll_link" body2="right_hip_pitch_link"/>
+    <exclude body1="right_hip_yaw_link" body2="right_knee_pitch_link"/>
+    <exclude body1="right_hip_pitch_link" body2="right_ankle_pitch_link"/>
+    <exclude body1="right_knee_pitch_link" body2="right_ankle_roll_link"/>
+
+    <exclude body1="base_link" body2="left_hip_roll_link"/>
+    <exclude body1="left_hip_roll_link" body2="left_hip_yaw_link"/>
+    <exclude body1="left_hip_yaw_link" body2="left_hip_pitch_link"/>
+    <exclude body1="left_hip_pitch_link" body2="left_knee_pitch_link"/>
+    <exclude body1="left_knee_pitch_link" body2="left_ankle_pitch_link"/>
+    <exclude body1="left_ankle_pitch_link" body2="left_ankle_roll_link"/>
+    <exclude body1="base_link" body2="left_hip_yaw_link"/>
+    <exclude body1="left_hip_roll_link" body2="left_hip_pitch_link"/>
+    <exclude body1="left_hip_yaw_link" body2="left_knee_pitch_link"/>
+    <exclude body1="left_hip_pitch_link" body2="left_ankle_pitch_link"/>
+    <exclude body1="left_knee_pitch_link" body2="left_ankle_roll_link"/>
+  </contact>
+
+  <actuator>
+    <motor name="left_hip_roll_joint" joint="left_hip_roll_joint" gear="1" ctrlrange="-500 500"/>
+    <motor name="left_hip_yaw_joint" joint="left_hip_yaw_joint" gear="1" ctrlrange="-500 500"/>
+    <motor name="left_hip_pitch_joint" joint="left_hip_pitch_joint" gear="1" ctrlrange="-500 500"/>
+    <motor name="left_knee_pitch_joint" joint="left_knee_pitch_joint" gear="1" ctrlrange="-500 500"/>
+    <motor name="left_ankle_pitch_joint" joint="left_ankle_pitch_joint" gear="1" ctrlrange="-500 500"/>
+    <motor name="left_ankle_roll_joint" joint="left_ankle_roll_joint" gear="1" ctrlrange="-500 500"/>
+    <motor name="right_hip_roll_joint" joint="right_hip_roll_joint" gear="1" ctrlrange="-500 500"/>
+    <motor name="right_hip_yaw_joint" joint="right_hip_yaw_joint" gear="1" ctrlrange="-500 500"/>
+    <motor name="right_hip_pitch_joint" joint="right_hip_pitch_joint" gear="1" ctrlrange="-500 500"/>
+    <motor name="right_knee_pitch_joint" joint="right_knee_pitch_joint" gear="1" ctrlrange="-500 500"/>
+    <motor name="right_ankle_pitch_joint" joint="right_ankle_pitch_joint" gear="1" ctrlrange="-500 500"/>
+    <motor name="right_ankle_roll_joint" joint="right_ankle_roll_joint" gear="1" ctrlrange="-500 500"/>
+
+  </actuator>
+
+  <sensor>
+    <actuatorpos name="left_hip_roll_joint_pos"  actuator="left_hip_roll_joint" user="13"/>
+    <actuatorpos name="left_hip_yaw_joint_pos"  actuator="left_hip_yaw_joint" user="13"/>
+    <actuatorpos name="left_hip_pitch_joint_pos"  actuator="left_hip_pitch_joint" user="13"/>
+    <actuatorpos name="left_knee_pitch_joint_pos"  actuator="left_knee_pitch_joint" user="13"/>
+    <actuatorpos name="left_ankle_pitch_joint_pos"  actuator="left_ankle_pitch_joint" user="13"/>
+    <actuatorpos name="left_ankle_roll_joint_pos"  actuator="left_ankle_roll_joint" user="13"/>
+    <actuatorpos name="right_hip_roll_joint_pos"  actuator="right_hip_roll_joint" user="13"/>
+    <actuatorpos name="right_hip_yaw_joint_pos"  actuator="right_hip_yaw_joint" user="13"/>
+    <actuatorpos name="right_hip_pitch_joint_pos"  actuator="right_hip_pitch_joint" user="13"/>
+    <actuatorpos name="right_knee_pitch_joint_pos"  actuator="right_knee_pitch_joint" user="13"/>
+    <actuatorpos name="right_ankle_pitch_joint_pos"  actuator="right_ankle_pitch_joint" user="13"/>
+    <actuatorpos name="right_ankle_roll_joint_pos"  actuator="right_ankle_roll_joint" user="13"/>
+
+    <actuatorvel name="left_hip_roll_joint_vel"  actuator="left_hip_roll_joint" user="13"/>
+    <actuatorvel name="left_hip_yaw_joint_vel"  actuator="left_hip_yaw_joint" user="13"/>
+    <actuatorvel name="left_hip_pitch_joint_vel"  actuator="left_hip_pitch_joint" user="13"/>
+    <actuatorvel name="left_knee_pitch_joint_vel"  actuator="left_knee_pitch_joint" user="13"/>
+    <actuatorvel name="left_ankle_pitch_joint_vel"  actuator="left_ankle_pitch_joint" user="13"/>
+    <actuatorvel name="left_ankle_roll_joint_vel"  actuator="left_ankle_roll_joint" user="13"/>
+    <actuatorvel name="right_hip_roll_joint_vel"  actuator="right_hip_roll_joint" user="13"/>
+    <actuatorvel name="right_hip_yaw_joint_vel"  actuator="right_hip_yaw_joint" user="13"/>
+    <actuatorvel name="right_hip_pitch_joint_vel"  actuator="right_hip_pitch_joint" user="13"/>
+    <actuatorvel name="right_knee_pitch_joint_vel"  actuator="right_knee_pitch_joint" user="13"/>
+    <actuatorvel name="right_ankle_pitch_joint_vel"  actuator="right_ankle_pitch_joint" user="13"/>
+    <actuatorvel name="right_ankle_roll_joint_vel"  actuator="right_ankle_roll_joint" user="13"/>
+
+    <actuatorfrc name="left_hip_roll_joint_frc"  actuator="left_hip_roll_joint" user="13" noise="1e-3"/>
+    <actuatorfrc name="left_hip_yaw_joint_frc"  actuator="left_hip_yaw_joint" user="13" noise="1e-3"/>
+    <actuatorfrc name="left_hip_pitch_joint_frc"  actuator="left_hip_pitch_joint" user="13" noise="1e-3"/>
+    <actuatorfrc name="left_knee_pitch_joint_frc"  actuator="left_knee_pitch_joint" user="13" noise="1e-3"/>
+    <actuatorfrc name="left_ankle_pitch_joint_frc"  actuator="left_ankle_pitch_joint" user="13" noise="1e-3"/>
+    <actuatorfrc name="left_ankle_roll_joint_frc"  actuator="left_ankle_roll_joint" user="13" noise="1e-3"/>
+    <actuatorfrc name="right_hip_roll_joint_frc"  actuator="right_hip_roll_joint" user="13" noise="1e-3"/>
+    <actuatorfrc name="right_hip_yaw_joint_frc"  actuator="right_hip_yaw_joint" user="13" noise="1e-3"/>
+    <actuatorfrc name="right_hip_pitch_joint_frc"  actuator="right_hip_pitch_joint" user="13" noise="1e-3"/>
+    <actuatorfrc name="right_knee_pitch_joint_frc"  actuator="right_knee_pitch_joint" user="13" noise="1e-3"/>
+    <actuatorfrc name="right_ankle_pitch_joint_frc"  actuator="right_ankle_pitch_joint" user="13" noise="1e-3"/>
+    <actuatorfrc name="right_ankle_roll_joint_frc"  actuator="right_ankle_roll_joint" user="13" noise="1e-3"/>
+
+    <framequat name="orientation" objtype="site" noise="0.001" objname="imu"/>
+    <framepos name="position" objtype="site" noise="0.001" objname="imu"/>
+    <gyro          name="angular_velocity"    site="imu" noise="0.005" cutoff="34.9"/>
+    <velocimeter   name="linear_velocity"     site="imu" noise="0.001" cutoff="30"/>
+    <accelerometer name="linear_acceleration" site="imu" noise="0.005" cutoff="157"/>
+    <magnetometer  name="magnetometer"        site="imu"/>
+    <!-- 手动展开配置 rangefinder 传感器 -->
+    <rangefinder name="rangefinder_{x}_{y}" site="laser_{x}_{y}" cutoff="2.5"/>
+  </sensor>
+
+</mujoco>

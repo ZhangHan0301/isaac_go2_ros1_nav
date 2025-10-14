@@ -1,4 +1,4 @@
-from omni.isaac.lab.terrains.height_field.utils import height_field_to_mesh
+from isaaclab.terrains.height_field.utils import height_field_to_mesh
 # from isaaclab.terrains.height_field.utils import height_field_to_mesh
 import numpy as np
 import time

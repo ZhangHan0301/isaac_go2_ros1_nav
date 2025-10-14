@@ -41,7 +41,7 @@ from isaaclab_assets.robots.unitree import UNITREE_GO2_CFG
 from .terrain_cfg import HfUniformDiscreteObstaclesTerrainCfg
 from .terrain import *
 
-
+from .pillar_obstacles_terrain import *
 
 
 # LOW_LEVEL_ENV_CFG = AnymalCFlatEnvCfg()
@@ -95,7 +95,7 @@ class ObservationsCfg:
         """Observations for policy group."""
 
         # observation terms (order preserved)
-        base_lin_vel = ObsTerm(func=mdp.base_lin_vel)
+        # base_lin_vel = ObsTerm(func=mdp.base_lin_vel)
         # projected_gravity = ObsTerm(func=mdp.projected_gravity)
         pose_command = ObsTerm(func=mdp.generated_commands, params={"command_name": "pose_command"})
         height_scan = ObsTerm(func=mdp.height_scan_nav,
@@ -214,8 +214,18 @@ class MySceneCfg(InteractiveSceneCfg):
         ),
         visual_material=None,     
     )
+    
+
+    
+    # terrain2 = TerrainImporterCfg(
+    #     prim_path="/World/ground",
+    #     terrain_type="generator",
+    #     terrain_generator=terrain_gen_cfg,
+    #     visual_material=None,     
+    # )
+    
     # terrain = TerrainImporterCfg(prim_path="/World/ground", terrain_type="usd", 
-    #                              usd_path="/home/nav/isaac_new/asset/Assets/Isaac/4.5/Isaac/Environments/my_scence/narrow_corrier/World1/World0.usd")
+    #             usd_path="/home/nav/isaac_new/asset/Assets/Isaac/4.5/Isaac/Environments/my_scence/narrow_corrier/World1/World0.usd")
     
     # robots
     robot: ArticulationCfg = UNITREE_GO2_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
@@ -235,7 +245,7 @@ class MySceneCfg(InteractiveSceneCfg):
         prim_path="{ENV_REGEX_NS}/Robot/base",
         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
         attach_yaw_only=True,
-        pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[3.0, 2.0]),
+        pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[3.0, 3.0]),
         debug_vis=true,
         mesh_prim_paths=["/World/ground"],
     )

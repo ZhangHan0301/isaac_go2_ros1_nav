@@ -1,25 +1,27 @@
-from omni.isaac.lab.scene import InteractiveSceneCfg
-from omni.isaac.lab_assets.unitree import UNITREE_GO2_CFG
-from omni.isaac.lab.sensors import RayCasterCfg, patterns, ContactSensorCfg
-from omni.isaac.lab.utils import configclass
-from omni.isaac.lab.assets import ArticulationCfg, AssetBaseCfg
-from omni.isaac.lab.managers import EventTermCfg as EventTerm
-import omni.isaac.lab.sim as sim_utils
-# import omni.isaac.lab.envs.mdp as mdp
+from sympy import im
+from isaaclab.scene import InteractiveSceneCfg
+from isaaclab_assets.robots.unitree import UNITREE_GO2_CFG
+from isaaclab.sensors import RayCasterCfg, patterns, ContactSensorCfg
+from isaaclab.utils import configclass
+from isaaclab.assets import ArticulationCfg, AssetBaseCfg
+from isaaclab.managers import EventTermCfg as EventTerm
+import isaaclab.sim as sim_utils
+# import isaaclab.envs.mdp as mdp
 import go2.mdp as mdp
-from omni.isaac.lab.managers import ObservationGroupCfg as ObsGroup
-from omni.isaac.lab.managers import ObservationTermCfg as ObsTerm
-from omni.isaac.lab.envs import ManagerBasedRLEnvCfg
-from omni.isaac.lab.managers import SceneEntityCfg
-from omni.isaac.lab.utils.noise import UniformNoiseCfg
-from omni.isaac.lab.managers import TerminationTermCfg as DoneTerm
-from omni.isaac.lab.managers import RewardTermCfg as RewTerm
+from isaaclab.managers import ObservationGroupCfg as ObsGroup
+from isaaclab.managers import ObservationTermCfg as ObsTerm
+from isaaclab.envs import ManagerBasedRLEnvCfg
+from isaaclab.managers import SceneEntityCfg
+from isaaclab.utils.noise import UniformNoiseCfg
+from isaaclab.managers import TerminationTermCfg as DoneTerm
+from isaaclab.managers import RewardTermCfg as RewTerm
 
-from omni.isaac.lab.terrains import TerrainImporterCfg, TerrainImporter
-from omni.isaac.lab.terrains import TerrainGeneratorCfg
+from isaaclab.terrains import TerrainImporterCfg, TerrainImporter
+from isaaclab.terrains import TerrainGeneratorCfg
 from env.terrain_cfg import HfUniformDiscreteObstaclesTerrainCfg
 
-from omni.isaac.core.utils.viewports import set_camera_view
+from isaaclab.sim.simulation_context import set_camera_view
+# from omni.isaac.core.utils.viewports import set_camera_view
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 import go2.go2_ctrl as go2_ctrl
@@ -54,6 +56,15 @@ class Go2SimCfg(InteractiveSceneCfg):
         ),
         visual_material=None,     
     )
+    
+    obstacles = AssetBaseCfg(
+        prim_path="/World/ground/obstacles",
+        spawn=sim_utils.UsdFileCfg(
+            visible=True,
+            usd_path="/home/nav/isaac_new/RLRoverLab/rover_envs/assets/terrains/mars/terrain1/rocks_merged.usd"
+        ),
+        init_state=AssetBaseCfg.InitialStateCfg(pos=(0.0, 0.0, 0.0)),
+    )
     # Lights
     light = AssetBaseCfg(
         prim_path="/World/light",
@@ -69,11 +80,11 @@ class Go2SimCfg(InteractiveSceneCfg):
 
     # Go2 foot contact sensor
     
-    contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Go2/.*thigh", 
+    contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Go2/.*(_thigh|base*|_hip|Head_*)", 
                                       history_length=3, 
                                       track_air_time=True, 
                                       debug_vis = True,
-                            
+                                      filter_prim_paths_expr=["/World/ground"],
                                     )
 
     # Go2 height scanner
@@ -90,8 +101,8 @@ class Go2SimCfg(InteractiveSceneCfg):
         prim_path="{ENV_REGEX_NS}/Go2/base",
         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20)), 
         attach_yaw_only=True,
-        pattern_cfg=patterns.GridPatternCfg(resolution=0.5, size=[3.0, 2.0]), 
-        debug_vis=True,
+        pattern_cfg=patterns.GridPatternCfg(resolution=0.3, size=[3.0, 2.0]), 
+        debug_vis=False,
         mesh_prim_paths=["/World/ground"],
     )
 

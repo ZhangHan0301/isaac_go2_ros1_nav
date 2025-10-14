@@ -95,7 +95,10 @@ class PreTrainedPolicyAction(ActionTerm):
             actions (torch.Tensor): 导航规划器输出的动作指令---> 赋值给self._raw_actions
         """
         # print("action ", actions)
-        self._raw_actions[:] = actions
+        # actions[:,0] = actions[:,0]+0.3
+        self._raw_actions[:] = actions.clamp(-1.5, 1.5)
+        # print("process action ", self._raw_actions)
+        
         
 
     def apply_actions(self):

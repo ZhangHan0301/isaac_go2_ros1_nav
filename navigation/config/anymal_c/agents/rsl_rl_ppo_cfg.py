@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
+from pickle import TRUE
 from isaaclab.utils import configclass
 
 from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, RslRlPpoAlgorithmCfg
@@ -10,16 +11,20 @@ from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, R
 
 @configclass
 class NavigationEnvPPORunnerCfg(RslRlOnPolicyRunnerCfg):
-    num_steps_per_env = 10
+    num_steps_per_env = 20
     max_iterations = 10000
     save_interval = 1000
     experiment_name = "anymal_c_navigation"
     empirical_normalization = False
     policy = RslRlPpoActorCriticCfg(
         init_noise_std=0.5,
-        actor_hidden_dims=[128, 128],
-        critic_hidden_dims=[128, 128],
+        # actor_hidden_dims=[128, 128],
+        # critic_hidden_dims=[128, 128],
+        actor_hidden_dims=[512, 256, 128],
+        critic_hidden_dims=[512, 256, 128],
         activation="elu",
+        # class_name="ActorCriticCNN",
+        # noise_std_type="log",  # 'scalar' or 'log'
     )
     algorithm = RslRlPpoAlgorithmCfg(
         value_loss_coef=1.0,

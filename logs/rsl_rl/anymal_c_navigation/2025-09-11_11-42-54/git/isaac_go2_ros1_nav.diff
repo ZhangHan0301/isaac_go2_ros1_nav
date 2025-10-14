@@ -1,0 +1,3681 @@
+--- git status ---
+On branch develop/zh
+Your branch is up to date with 'origin/develop/zh'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   .vscode/settings.json
+	modified:   READMED.md
+	modified:   go2/go2_env.py
+	modified:   isaac_go2_ros.py
+	deleted:    isaac_go2_ros2.py
+	modified:   navigation/__init__.py
+	modified:   navigation/config/anymal_c/__init__.py
+	modified:   navigation/config/anymal_c/agents/rsl_rl_ppo_cfg.py
+	modified:   navigation/config/anymal_c/navigation_env_cfg.py
+	modified:   navigation/config/unitree/go2_nav_env_play_cfg.py
+	modified:   navigation/config/unitree/go2_navigation_env_cfg.py
+	modified:   navigation/mdp/__init__.py
+	modified:   navigation/mdp/observations.py
+	modified:   navigation/mdp/pre_trained_policy_action.py
+	modified:   navigation/mdp/rewards.py
+	modified:   navigation/mdp/terminations.py
+	deleted:    rsl_rl/cli_args.py
+	deleted:    rsl_rl/go2_ctrl.py
+	deleted:    rsl_rl/go2_sim.py
+	deleted:    rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/events.out.tfevents.1742208359.nav.108294.0
+	deleted:    rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/exported/policy.onnx
+	deleted:    rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/exported/policy.pt
+	deleted:    rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/git/isaac_go2_ros1_nav.diff
+	deleted:    rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/model_9999.pt
+	deleted:    rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/params/agent.pkl
+	deleted:    rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/params/agent.yaml
+	deleted:    rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/params/env.pkl
+	deleted:    rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/params/env.yaml
+	deleted:    rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/videos/play/rl-video-step-0.meta.json
+	deleted:    rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/videos/play/rl-video-step-0.mp4
+	deleted:    rsl_rl/play.py
+	deleted:    rsl_rl/train.py
+	modified:   test/decorator_02.py
+	modified:   test/learn_gym.py
+	modified:   test/learn_torch.py
+	modified:   test/test_load_mode.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	RL_Navigation.zip
+	ckpts/unitree_go2/ac_weights_last.pt
+	ckpts/unitree_go2/anymal_c_navigation/0317/exported/
+	ckpts/unitree_go2/go2/
+	logs/
+	navigation/config/aau_rover/
+	navigation/config/anymal_c/navigation_env_cfg_bk.py
+	navigation/config/jetbot/
+	navigation/mdp/actions/
+	navigation/mdp/randomizations.py
+	navigation/terrains/
+	obs.txt
+	ray_hit.txt
+	robots/
+	rsl_rl-1.0.2/
+	rsl_rl/.flake8
+	rsl_rl/.github/
+	rsl_rl/.gitignore
+	rsl_rl/.pre-commit-config.yaml
+	rsl_rl/CONTRIBUTORS.md
+	rsl_rl/LICENSE
+	rsl_rl/README.md
+	rsl_rl/config/
+	rsl_rl/licenses/
+	rsl_rl/pyproject.toml
+	rsl_rl/rsl_rl/
+	rsl_rl/setup.py
+	script/
+	test/cnn_feature.py
+	test/factory.py
+	test/input_normalization.py
+	test/learn_distributions.py
+	test/manager_test.py
+	test/observation_manager.py
+
+no changes added to commit (use "git add" and/or "git commit -a") 
+
+
+--- git diff ---
+diff --git a/.vscode/settings.json b/.vscode/settings.json
+index 02ae64a..377253c 100644
+--- a/.vscode/settings.json
++++ b/.vscode/settings.json
+@@ -3,11 +3,12 @@
+     "python.analysis.typeCheckingMode": "off",
+     "python.defaultInterpreterPath": "/home/nav/miniconda3/envs/env_isaaclab/bin/python",
+     "python.analysis.extraPaths": [
+-        // 添加所有本地包的源码根目录
+         "/home/nav/isaac_new/IsaacLab/source/isaaclab",
+         "/home/nav/isaac_new/IsaacLab/source/isaaclab_assets",
+         "/home/nav/isaac_new/IsaacLab/source/isaaclab_rl",
+         "/home/nav/isaac_new/IsaacLab/source/isaaclab_tasks",
+-        "/home/nav/isaac_new/legged_lab"
++        "/home/nav/isaac_new/legged_lab",
++        "/home/nav/miniconda3/envs/env_isaaclab/lib/python3.10/site-packages/gym",
++        "./rsl_rl"
+     ]
+ }
+\ No newline at end of file
+diff --git a/READMED.md b/READMED.md
+index 3333569..525afda 100644
+--- a/READMED.md
++++ b/READMED.md
+@@ -2,33 +2,65 @@
+ ```
+ Isaac-Navigation-Flat-go2-v0
+ # 测试训练结果
+-python rsl_rl/play.py --task Isaac-Navigation-Flat-Anymal-C-v1 --num_envs 1 --checkpoint ckpts/unitree_go2/anymal_c_navigation/model_9999.pt
++python script/play.py --task Isaac-Navigation-Flat-Anymal-C-v1 --num_envs 1 --checkpoint ckpts/unitree_go2/anymal_c_navigation/model_9999.pt
+ 
+-#环境go2 
+-python rsl_rl/play.py --task Isaac-Navigation-go2-v0 --num_envs 1 --checkpoint ckpts/unitree_go2/anymal_c_navigation/model_9999.pt
+-python rsl_rl/play.py --task Isaac-Navigation-go2-play-v0 --num_envs 1 --checkpoint rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_14-34-51/model_9999.pt
++# 环境go2 
+ 
++python script/play.py --task Isaac-Navigation-go2-v0 --num_envs 1 --checkpoint ckpts/unitree_go2/anymal_c_navigation/model_9999.pt
++python script/play.py --task Isaac-Navigation-go2-play-v0 --num_envs 1 --checkpoint rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_14-34-51/model_9999.pt
++python script/play.py --task Isaac-Navigation-Flat-Anymal-C-v1 --num_envs 1 --checkpoint
+ 
+ ```
++# Isaac-Navigation-Aau-Rover-v1
++
++    # 训练过程
++
++    python script/train.py --task Isaac-Navigation-Aau-Rover-v1 --num_envs 4090 --headless
++    
++    python script/train.py --task Isaac-Navigation-Aau-Rover-v1 --num_envs 4090 --headless --resume true --checkpoint
++
++    # 推理过程
++    
++    python script/play.py --task Isaac-Navigation-Aau-Rover-v1 --num_envs 1 --checkpoint 
++
++# Isaac-Navigation-Flat-Anymal-C-v1
++
++    python script/train.py --task Isaac-Navigation-Flat-Anymal-C-v1 --num_envs 4090 --headless
++
++    python script/train.py --task Isaac-Navigation-Flat-Anymal-C-v1 --num_envs 4090 --headless --resume true --checkpoint
++
++    ## 推理过程
++    python script/play.py --task Isaac-Navigation-Flat-Anymal-C-v1 --num_envs 1 --checkpoint
++
++# Jebot
++    python script/train.py --task Isaac-Navigation-jetbot-v0 --num_envs 4090 --headless
+ 
+-```
+ # 训练导航策略
+-python rsl_rl/train.py --task Isaac-Navigation-go2-v0 --num_envs 4090 --headless
+-```
+-#断点重新训练
+-python rsl_rl/train.py --task Isaac-Navigation-go2-v0 --num_envs 3000 --headless --resume true --checkpoint logs/rsl_rl/unitree_go2_rough/2025-03-21_14-48-56/model_2000.pt
+-python rsl_rl/train.py --task Isaac-Navigation-Flat-Anymal-C-v1 --num_envs 4090 --headless
++
++    ```
++    python script/train.py --task Isaac-Navigation-go2-v0 --num_envs 4090 --headless
++    ```
++
++# 断点重新训练
++
++    python script/train.py --task Isaac-Navigation-go2-v0 --num_envs 3000 --headless --resume true --checkpoint logs/rsl_rl/unitree_go2_rough/2025-03-21_14-48-56/model_2000.pt
++
++    python script/train.py --task Isaac-Navigation-Flat-Anymal-C-v1 --num_envs 4090 --headless
++
++    python script/train.py --task Isaac-Navigation-Flat-Anymal-C-v1 --num_envs 4090 --headless --resume true --checkpoint
+ 
+ # 原网络输入
+-+---------------------------------------------------------+
+-| Active Observation Terms in Group: 'policy' (shape: (10,)) |
+-+-----------+---------------------------------+-----------+
+-|   Index   | Name                            |   Shape   |
+-+-----------+---------------------------------+-----------+
+-|     0     | base_lin_vel                    |    (3,)   |
+-|     1     | projected_gravity               |    (3,)   |
+-|     2     | pose_command                    |    (4,)   |
+-+-----------+---------------------------------+-----------+
++    +---------------------------------------------------------+
++    | Active Observation Terms in Group: 'policy' (shape: (10,)) |
++    +-----------+---------------------------------+-----------+
++    |   Index   | Name                            |   Shape   |
++    +-----------+---------------------------------+-----------+
++    |     0     | base_lin_vel                    |    (3,)   |
++    |     1     | projected_gravity               |    (3,)   |
++    |     2     | pose_command                    |    (4,)   |
++    +-----------+---------------------------------+-----------+
+ 
+ # 查看日志
+-python -m tensorboard.main --logdir logs/rsl_rl/unitree/2025-03-20_17-31-12/
+\ No newline at end of file
++    python -m tensorboard.main --logdir logs/rsl_rl/unitree/2025-03-20_17-31-12/
++
++
+diff --git a/go2/go2_env.py b/go2/go2_env.py
+index 232fae8..feb3c2a 100644
+--- a/go2/go2_env.py
++++ b/go2/go2_env.py
+@@ -54,6 +54,15 @@ class Go2SimCfg(InteractiveSceneCfg):
+         ),
+         visual_material=None,     
+     )
++    
++    obstacles = AssetBaseCfg(
++        prim_path="/World/ground/obstacles",
++        spawn=sim_utils.UsdFileCfg(
++            visible=True,
++            usd_path="/home/nav/isaac_new/RLRoverLab/rover_envs/assets/terrains/mars/terrain1/rocks_merged.usd"
++        ),
++        init_state=AssetBaseCfg.InitialStateCfg(pos=(0.0, 0.0, 0.0)),
++    )
+     # Lights
+     light = AssetBaseCfg(
+         prim_path="/World/light",
+@@ -69,11 +78,11 @@ class Go2SimCfg(InteractiveSceneCfg):
+ 
+     # Go2 foot contact sensor
+     
+-    contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Go2/.*thigh", 
++    contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Go2/.*(_thigh|base*|_hip|Head_*)", 
+                                       history_length=3, 
+                                       track_air_time=True, 
+                                       debug_vis = True,
+-                            
++                                      filter_prim_paths_expr=["/World/ground"],
+                                     )
+ 
+     # Go2 height scanner
+@@ -90,8 +99,8 @@ class Go2SimCfg(InteractiveSceneCfg):
+         prim_path="{ENV_REGEX_NS}/Go2/base",
+         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20)), 
+         attach_yaw_only=True,
+-        pattern_cfg=patterns.GridPatternCfg(resolution=0.5, size=[3.0, 2.0]), 
+-        debug_vis=True,
++        pattern_cfg=patterns.GridPatternCfg(resolution=0.3, size=[3.0, 2.0]), 
++        debug_vis=False,
+         mesh_prim_paths=["/World/ground"],
+     )
+ 
+diff --git a/isaac_go2_ros.py b/isaac_go2_ros.py
+index 95a18fe..48610a6 100644
+--- a/isaac_go2_ros.py
++++ b/isaac_go2_ros.py
+@@ -16,7 +16,7 @@ import go2.go2_sensors as go2_sensors
+ import time
+ import os
+ import hydra
+-from omni.isaac.lab.sensors import RayCasterCfg, patterns,RayCaster
++from omni.isaac.lab.sensors import RayCasterCfg, patterns,RayCaster, ContactSensor
+ import rospy
+ import sensor_msgs.point_cloud2 as pc2
+ from sensor_msgs.msg import PointCloud2
+@@ -137,13 +137,6 @@ def run_simulator(cfg):
+             third_elements = ray_hit_w[:, :, 2]
+             mask = third_elements > -0.3
+             
+-            
+-            
+-            obstacle_point_xy = ray_hit_w[...,:2]
+-            obstacle_distance = torch.norm(obstacle_point_xy, p=2, dim=2)  # 形状 (2, 3)
+-            print("raw ray hit ", ray_hit_w)
+-            ray_hit_w[:, :, 2] = torch.where(mask, obstacle_distance, torch.zeros_like(third_elements))
+-            print("ray hit w ", ray_hit_w)
+             # print(obstacle_distance)
+             # print(obstacle_point_xy)
+             # ray_hit_np = obstacle_point_xy.cpu().numpy()
+@@ -157,6 +150,19 @@ def run_simulator(cfg):
+             ray_hits_local = torch.bmm(ray_hit_w, R)
+             # print("p robot ", ray_hits_local)
+             
++            ##################### test collision_penalty #####################
++            contact_sensor: ContactSensor = env.env.scene["contact_forces"]
++            
++            force_matrix = contact_sensor.data.force_matrix_w.view(1,-1,3)
++            print("force_matrix  size", force_matrix.size())
++            print("force matrix ", force_matrix)
++            
++            # Calculating the force and applying a penalty if collision forces are detected
++            normalized_forces = torch.norm(force_matrix, dim=1)
++            forces_active = torch.sum(normalized_forces, dim=-1) > 1
++            collision_reward = torch.where(forces_active, 1.0, 0.0)
++            print("collision rewared ", collision_reward)
++            
+             
+             # Camera follow
+             if (cfg.camera_follow):
+diff --git a/isaac_go2_ros2.py b/isaac_go2_ros2.py
+deleted file mode 100644
+index 50d9b9b..0000000
+--- a/isaac_go2_ros2.py
++++ /dev/null
+@@ -1,173 +0,0 @@
+-from isaacsim import SimulationApp
+-
+-# launch omniverse app
+-simulation_app = SimulationApp({"headless": False, "anti_aliasing": 0,
+-                                "width": 1280, "height": 720, 
+-                                "hide_ui": True})
+-# import rclpy
+-import torch
+-import omni
+-import carb
+-import go2.go2_ctrl as go2_ctrl
+-# import ros2.go2_ros2_bridge as go2_ros2_bridge
+-from go2.go2_env import Go2RSLEnvCfg, camera_follow
+-import env.sim_env as sim_env
+-import go2.go2_sensors as go2_sensors
+-import time
+-import os
+-import hydra
+-from omni.isaac.lab.sensors import RayCasterCfg, patterns,RayCaster
+-import rospy
+-import sensor_msgs.point_cloud2 as pc2
+-from sensor_msgs.msg import PointCloud2
+-import std_msgs.msg
+-
+-from omni.isaac.lab.utils.assets import ISAACLAB_NUCLEUS_DIR
+-
+-def quaternion_to_rotation_matrix(quat: torch.Tensor) -> torch.Tensor:
+-    # quat = quat / torch.norm(quat, dim=1, keepdim=True)  # 归一化
+-    w, x, y, z = quat[:, 0], quat[:, 1], quat[:, 2], quat[:, 3]
+-    
+-    # 计算旋转矩阵元素
+-    x2, y2, z2 = x**2, y**2, z**2
+-    xy, xz, yz = x*y, x*z, y*z
+-    xw, yw, zw = x*w, y*w, z*w
+-    
+-    r00 = 1 - 2*y2 - 2*z2
+-    r01 = 2*xy - 2*zw
+-    r02 = 2*xz + 2*yw
+-    
+-    r10 = 2*xy + 2*zw
+-    r11 = 1 - 2*x2 - 2*z2
+-    r12 = 2*yz - 2*xw
+-    
+-    r20 = 2*xz - 2*yw
+-    r21 = 2*yz + 2*xw
+-    r22 = 1 - 2*x2 - 2*y2
+-    
+-    R = torch.stack([
+-        torch.stack([r00, r01, r02], dim=1),
+-        torch.stack([r10, r11, r12], dim=1),
+-        torch.stack([r20, r21, r22], dim=1)
+-    ], dim=1)
+-    return R
+-
+-
+-
+-    # 创建发布器
+-lidar_pub = rospy.Publisher('/lidar_points', PointCloud2, queue_size=10)
+-
+-FILE_PATH = os.path.join(os.path.dirname(__file__), "cfg")
+-print(FILE_PATH)
+-@hydra.main(config_path=FILE_PATH, config_name="sim", version_base=None)
+-def run_simulator(cfg):
+-    # Go2 Environment setup
+-    go2_env_cfg = Go2RSLEnvCfg()
+-    go2_env_cfg.scene.num_envs = cfg.num_envs
+-    go2_ctrl.init_base_vel_cmd(cfg.num_envs)
+-    # env, policy = go2_ctrl.get_rsl_flat_policy(go2_env_cfg)
+-    env, policy = go2_ctrl.get_rsl_rough_policy(go2_env_cfg)
+-
+-    # # Simulation environment
+-    # if (cfg.env_name == "obstacle-dense"):
+-    #     sim_env.create_obstacle_dense_env() # obstacles dense
+-    # elif (cfg.env_name == "obstacle-medium"):
+-    #     sim_env.create_obstacle_medium_env() # obstacles medium
+-    # elif (cfg.env_name == "obstacle-sparse"):
+-    #     sim_env.create_obstacle_sparse_env() # obstacles sparse
+-    # elif (cfg.env_name == "warehouse"):
+-    #     sim_env.create_warehouse_env() # warehouse
+-    # elif (cfg.env_name == "warehouse-forklifts"):
+-    #     sim_env.create_warehouse_forklifts_env() # warehouse forklifts
+-    # elif (cfg.env_name == "warehouse-shelves"):
+-    #     sim_env.create_warehouse_shelves_env() # warehouse shelves
+-    # elif (cfg.env_name == "full-warehouse"):
+-    #     sim_env.create_full_warehouse_env() # full warehouse
+-
+-    # Sensor setup
+-    sm = go2_sensors.SensorManager(cfg.num_envs)
+-    lidar_annotators = sm.add_rtx_lidar()
+-    cameras = sm.add_camera()
+-
+-    # Keyboard control
+-    system_input = carb.input.acquire_input_interface()
+-    system_input.subscribe_to_keyboard_events(
+-        omni.appwindow.get_default_app_window().get_keyboard(), go2_ctrl.sub_keyboard_event)
+-    
+-
+-    # Run simulation
+-    sim_step_dt = float(go2_env_cfg.sim.dt * go2_env_cfg.decimation)
+-    obs, _ = env.reset()
+-    while simulation_app.is_running():
+-        start_time = time.time()
+-        with torch.inference_mode():            
+-            # control joints
+-            lidar_data = lidar_annotators[0].get_data()["data"].reshape(-1, 3)
+-            # print("lidar data size: ", lidar_data.shape)
+-            # print("lidar_annotators: ",lidar_annotators[0].get_data()["data"].reshape(-1, 3))
+-            # 将点云数据转换为 ROS PointCloud2 格式
+-            header = std_msgs.msg.Header()
+-            header.stamp = rospy.Time.now()
+-            header.frame_id = "base_link"  # 设定坐标系名称
+-
+-            # 将点云转换为 PointCloud2 格式
+-            pc_data = pc2.create_cloud_xyz32(header, lidar_data)
+-            lidar_pub.publish(pc_data)
+-            
+-            actions = policy(obs)
+-
+-            # step the environment
+-            obs, reward, done, _ = env.step(actions)
+-            # print("join pose ", obs.flatten()[12:24])
+-            sensor: RayCaster = env.env.scene["height_scanner2"]
+-            ray_pos_w = sensor.data.pos_w
+-            robot_quat = sensor.data.quat_w
+-            qw = robot_quat[:, 0]
+-            qx = robot_quat[:, 1]
+-            qy = robot_quat[:, 2]
+-            qz = robot_quat[:, 3]
+-            yaw_base = torch.atan2(2 * (qw * qz + qx * qy), 1 - 2 * (qy * qy + qz * qz))
+-            # print("yaw_ base ", yaw_base)
+-            # print("pos_w ", ray_pos_w)
+-            # print("quat ", robot_quat)
+-            print("ray hit ", sensor.data.ray_hits_w)
+-            translated_points = sensor.data.ray_hits_w - ray_pos_w.unsqueeze(1)
+-            # print("translated points ", translated_points)
+-            R = quaternion_to_rotation_matrix(robot_quat)
+-            
+-            # R_transposed = R.transpose(1, 2)
+-            ray_hits_local = torch.bmm(translated_points, R)
+-            # print("p robot ", ray_hits_local)
+-            
+-            
+-            # Camera follow
+-            if (cfg.camera_follow):
+-                camera_follow(env)
+-                
+-            if(done):
+-                print("\n\n robot is done\n\n\n")
+-                env.reset()
+-                # env.env.scene["contact_forces"].reset()
+-                # env.env.scene.update(0.1)
+-                
+-                
+-            
+-            
+-
+-            # limit loop time
+-            elapsed_time = time.time() - start_time
+-            if elapsed_time < sim_step_dt:
+-                sleep_duration = sim_step_dt - elapsed_time
+-                time.sleep(sleep_duration)
+-        actual_loop_time = time.time() - start_time
+-        rtf = min(1.0, sim_step_dt/elapsed_time)
+-        # print(f"\rStep time: {actual_loop_time*1000:.2g}ms, Real Time Factor: {rtf:.2g}\n", end='', flush=True)
+-    
+-    # dm.destroy_node()
+-    # rclpy.shutdown()
+-
+-if __name__ == "__main__":
+-    rospy.init_node('lidar_point_cloud_publisher', anonymous=True)
+-    
+-    run_simulator()
+-    simulation_app.close()
+diff --git a/navigation/__init__.py b/navigation/__init__.py
+index dad7ac4..da99778 100644
+--- a/navigation/__init__.py
++++ b/navigation/__init__.py
+@@ -7,3 +7,5 @@
+ 
+ from .config import anymal_c
+ from .config import unitree
++from .config import aau_rover
++from .config import jetbot
+diff --git a/navigation/config/anymal_c/__init__.py b/navigation/config/anymal_c/__init__.py
+index 7d61e8e..77898e7 100644
+--- a/navigation/config/anymal_c/__init__.py
++++ b/navigation/config/anymal_c/__init__.py
+@@ -4,7 +4,6 @@
+ # SPDX-License-Identifier: BSD-3-Clause
+ 
+ import gymnasium as gym
+-
+ from . import agents
+ 
+ ##
+diff --git a/navigation/config/anymal_c/agents/rsl_rl_ppo_cfg.py b/navigation/config/anymal_c/agents/rsl_rl_ppo_cfg.py
+index 1172a95..8795e14 100644
+--- a/navigation/config/anymal_c/agents/rsl_rl_ppo_cfg.py
++++ b/navigation/config/anymal_c/agents/rsl_rl_ppo_cfg.py
+@@ -3,6 +3,7 @@
+ #
+ # SPDX-License-Identifier: BSD-3-Clause
+ 
++from pickle import TRUE
+ from isaaclab.utils import configclass
+ 
+ from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, RslRlPpoAlgorithmCfg
+@@ -19,7 +20,11 @@ class NavigationEnvPPORunnerCfg(RslRlOnPolicyRunnerCfg):
+         init_noise_std=0.5,
+         actor_hidden_dims=[128, 128],
+         critic_hidden_dims=[128, 128],
++        # actor_hidden_dims=[512, 256, 128],
++        # critic_hidden_dims=[512, 256, 128],
+         activation="elu",
++        # class_name="ActorCriticCNN",
++        # noise_std_type="log",  # 'scalar' or 'log'
+     )
+     algorithm = RslRlPpoAlgorithmCfg(
+         value_loss_coef=1.0,
+diff --git a/navigation/config/anymal_c/navigation_env_cfg.py b/navigation/config/anymal_c/navigation_env_cfg.py
+index 1ff1517..681bb1b 100644
+--- a/navigation/config/anymal_c/navigation_env_cfg.py
++++ b/navigation/config/anymal_c/navigation_env_cfg.py
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: BSD-3-Clause
+ 
+ import math
++
++from sympy import true
+ from isaaclab.assets import ArticulationCfg, AssetBaseCfg
+ from isaaclab.envs import ManagerBasedRLEnvCfg
+ from isaaclab.managers import EventTermCfg as EventTerm
+@@ -28,6 +30,7 @@ from navigation import mdp
+ # import isaaclab_tasks.manager_based.navigation.mdp as mdp
+ from isaaclab_tasks.manager_based.locomotion.velocity.config.anymal_c.flat_env_cfg import AnymalCFlatEnvCfg
+ from isaaclab_assets.robots.anymal import ANYMAL_C_CFG  # isort: skip
++from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
+ 
+ LOW_LEVEL_ENV_CFG = AnymalCFlatEnvCfg()
+ 
+@@ -35,6 +38,39 @@ LOW_LEVEL_ENV_CFG = AnymalCFlatEnvCfg()
+ @configclass
+ class EventCfg:
+     """Configuration for events."""
++     # startup
++    physics_material = EventTerm(
++        func=mdp.randomize_rigid_body_material,
++        mode="startup",
++        params={
++            "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
++            "static_friction_range": (0.8, 0.8),  #静态摩擦力
++            "dynamic_friction_range": (0.6, 0.6),
++            "restitution_range": (0.0, 0.0), #弹性
++            "num_buckets": 64,
++        },
++    )
++
++    add_base_mass = EventTerm(
++        func=mdp.randomize_rigid_body_mass,
++        mode="startup",
++        params={
++            "asset_cfg": SceneEntityCfg("robot", body_names="base"),
++            "mass_distribution_params": (-5.0, 5.0),
++            "operation": "add",
++        },
++    )
++
++    # reset
++    base_external_force_torque = EventTerm(
++        func=mdp.apply_external_force_torque,
++        mode="reset",
++        params={
++            "asset_cfg": SceneEntityCfg("robot", body_names="base"),
++            "force_range": (0.0, 0.0),
++            "torque_range": (-0.0, 0.0),
++        },
++    )
+ 
+     reset_base = EventTerm(
+         func=mdp.reset_root_state_uniform,
+@@ -42,16 +78,34 @@ class EventCfg:
+         params={
+             "pose_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-3.14, 3.14)},
+             "velocity_range": {
+-                "x": (-0.0, 0.0),
+-                "y": (-0.0, 0.0),
+-                "z": (-0.0, 0.0),
+-                "roll": (-0.0, 0.0),
+-                "pitch": (-0.0, 0.0),
+-                "yaw": (-0.0, 0.0),
++                "x": (-0.5, 0.5),
++                "y": (-0.5, 0.5),
++                "z": (-0.5, 0.5),
++                "roll": (-0.5, 0.5),
++                "pitch": (-0.5, 0.5),
++                "yaw": (-0.5, 0.5),
+             },
+         },
+     )
+ 
++    reset_robot_joints = EventTerm(
++        func=mdp.reset_joints_by_scale,
++        mode="reset",
++        params={
++            "position_range": (0.5, 1.5),
++            "velocity_range": (0.0, 0.0),
++        },
++    )
++
++    # interval
++    # push_robot = EventTerm(
++    #     func=mdp.push_by_setting_velocity,
++    #     mode="interval",
++    #     interval_range_s=(10.0, 15.0),
++    #     params={"velocity_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5)}},
++    # )
++
++    
+ # 网络输出
+ @configclass
+ class ActionsCfg:
+@@ -59,7 +113,8 @@ class ActionsCfg:
+ 
+     pre_trained_policy_action: mdp.PreTrainedPolicyActionCfg = mdp.PreTrainedPolicyActionCfg(
+         asset_name="robot",
+-        policy_path=f"{ISAACLAB_NUCLEUS_DIR}/Policies/ANYmal-C/Blind/policy.pt",
++        # policy_path=f"{ISAACLAB_NUCLEUS_DIR}/Policies/ANYmal-C/Blind/policy.pt",
++        policy_path=f"{ISAACLAB_NUCLEUS_DIR}/PretrainedCheckpoints/rsl_rl/Isaac-Velocity-Flat-Anymal-C-v0/exported/policy.pt",
+         low_level_decimation=4,
+         low_level_actions=LOW_LEVEL_ENV_CFG.actions.joint_pos,
+         low_level_observations=LOW_LEVEL_ENV_CFG.observations.policy,
+@@ -73,17 +128,24 @@ class ObservationsCfg:
+     @configclass
+     class PolicyCfg(ObsGroup):
+         """Observations for policy group."""
+-
+         # observation terms (order preserved)
+         # base_lin_vel = ObsTerm(func=mdp.base_lin_vel)
+         # projected_gravity = ObsTerm(func=mdp.projected_gravity)
+-        pose_command = ObsTerm(func=mdp.generated_commands, params={"command_name": "pose_command"})
++        pose_command = ObsTerm(func=mdp.generated_commands, 
++                               params={"command_name": "pose_command"})
+         height_scan = ObsTerm(func=mdp.height_scan_nav,
+                 params={"sensor_cfg": SceneEntityCfg("height_scanner2")},
+-                clip=(-1.0, 10.0))
++                noise=Unoise(n_min=-0.1, n_max=0.1),
++                clip=(-1.0, 1.5))
++        def __post_init__(self):
++            self.enable_corruption = True
++            self.concatenate_terms = True
++
+     # observation groups
+     policy: PolicyCfg = PolicyCfg()
+ 
++
++
+ #  奖励值设置
+ @configclass
+ class RewardsCfg:
+@@ -92,45 +154,82 @@ class RewardsCfg:
+     termination_penalty = RewTerm(func=mdp.is_terminated, weight=-400.0)
+     position_tracking = RewTerm(
+         func=mdp.position_command_error_tanh,
+-        weight=2.0,
++        weight=0.5,
+         params={"std": 2.0, "command_name": "pose_command"},
+     )
+     position_tracking_fine_grained = RewTerm(
+         func=mdp.position_command_error_tanh,
+-        weight=1.0,
++        weight=0.5,
+         params={"std": 0.2, "command_name": "pose_command"},
+     )
+     orientation_tracking = RewTerm(
+         func=mdp.heading_command_error_abs,
+-        weight=-0.2,
+-        params={"command_name": "pose_command"},
+-    )
+-        # 取值范围 -1.5 - 0.5
+-    yaw_alignment_reward = RewTerm(
+-        func=mdp.yaw_alignment_reward,
+-        weight=0.3, 
++        weight=-0.05,
+         params={"command_name": "pose_command"},
+     )
++
++    # distance_change = RewTerm(
++    #     func=mdp.goal_distance_change_reward,
++    #     weight=15.0,
++    #     params={"command_name": "pose_command"},
++    # )
+     
+-    base_line_vel = RewTerm(
+-        func=mdp.base_lin_vel_penalize,
+-        weight=0.2,
+-        params={"speed_limit":1.0, "penalty_coef":0.5}
+-        
+-    )
++    # distance_to_target = RewTerm(
++    #     func=mdp.distance_to_target_reward,
++    #     weight=50.0,
++    #     params={"command_name": "pose_command"},
++    # )
++    # reached_target = RewTerm(
++    #     func=mdp.reached_target,
++    #     weight=5.0,
++    #     params={"command_name": "pose_command", "threshold": 0.18},
++    # )
++    # oscillation = RewTerm(
++    #     func=mdp.oscillation_penalty,
++    #     weight=-0.01,
++    #     params={},
++    # )
++    # angle_to_target = RewTerm(
++    #     func=mdp.angle_to_target_penalty,
++    #     weight=-1.5,
++    #     params={"command_name": "pose_command"},
++    # )
+     
+-    obstacle_reward = RewTerm(
+-        func=mdp.obstacle_reward,
+-        weight= 0.5,
+-        params={ "z_threshold": -0.3, 
+-                "d_safe":0.6 },
+-    )
++    # yaw_alignment_reward = RewTerm(
++    #     func=mdp.yaw_alignment_reward,
++    #     weight=2.0, 
++    #     params={"command_name": "pose_command"},
++    # )
++    #后退惩罚
++    # heading_soft_contraint = RewTerm(
++    #     func=mdp.heading_soft_contraint,
++    #     weight=-0.5,
++    #     params={"asset_cfg": SceneEntityCfg(name="robot")},
++    # )
++
++    # far_from_target = RewTerm(
++    #     func=mdp.far_from_target_reward,
++    #     weight=-2.0,
++    #     params={"command_name": "pose_command", "threshold": 11.0},
++    # )
++    # angle_diff = RewTerm(
++    #     func=mdp.angle_to_goal_reward,
++    #     weight=5.0,
++    #     params={"command_name": "pose_command"},
++    # )
++    # excessive_speed_penalty = RewTerm(
++    #     func=mdp.excessive_speed_penalty,
++    #     weight=-0.1,
++    #     params={"asset_cfg": SceneEntityCfg(name="robot"),"speed_limit":1.5},
++    # )
++    
++    # obstacle_reward = RewTerm(
++    #     func=mdp.obstacle_reward,
++    #     weight= 0.8,
++    #     params={ "z_threshold": -0.3, 
++    #             "d_safe":0.50},
++    # )
+     
+-    reach_goal = RewTerm(func=mdp.object_reached_goal_reward,
+-                weight = 0.5,
+-                params={"command_name": "pose_command", "threshold": 0.1},
+-                )
+-
+ 
+ # 随机生成目标点
+ @configclass
+@@ -140,10 +239,10 @@ class CommandsCfg:
+     pose_command = mdp.UniformPose2dCommandCfg(
+         asset_name="robot",
+         simple_heading=False,
+-        resampling_time_range=(20.0, 20.0),
++        resampling_time_range=(5.0, 15.0),
+         debug_vis=True,
+-        # ranges=mdp.UniformPose2dCommandCfg.Ranges(pos_x=(-10.0, 10.0), pos_y=(-10.0, 10.0), heading=(-math.pi, math.pi)),
+-        ranges=mdp.UniformPose2dCommandCfg.Ranges(pos_x=(8.0, 10.0), pos_y=(-5.0, 10.0), heading=(-math.pi, math.pi)),
++        ranges=mdp.UniformPose2dCommandCfg.Ranges(pos_x=(-5.0,5.0), pos_y=(-3.0, 5.0), heading=(-math.pi, math.pi)),
++        # ranges=mdp.UniformPose2dCommandCfg.Ranges(pos_x=(3.0, 8.0), pos_y=(0.0, 0.0), heading=(0.0, 0.0)),
+     )
+ 
+ # 终止条件
+@@ -168,17 +267,18 @@ class MySceneCfg(InteractiveSceneCfg):
+         terrain_type="generator",
+         terrain_generator=TerrainGeneratorCfg(
+             seed=0,
+-            size=(50, 50),
++            size=(20,30),
+             color_scheme="height",
+             sub_terrains={"t1": HfUniformDiscreteObstaclesTerrainCfg(
+                 seed=0,
+-                size=(50, 50),
++                # size=(20, 20),
+                 obstacle_width_range=(0.5, 1.0),
+-                obstacle_height_range=(1.0, 2.0),
+-                num_obstacles=80,
++                obstacle_height_range=(0.3, 1.0),
++                num_obstacles=100,
+                 obstacles_distance=2.5,
+-                border_width=5,
+-                avoid_positions=[[0, 0]]
++                border_width=0.1,
++                platform_width=2.0,
++                avoid_positions=[[10, 0.5],[9,0.2],[0.0,30],[5.0, 30],[10.0,29]]
+             )},
+         ),
+         visual_material=None,     
+@@ -218,8 +318,6 @@ class MySceneCfg(InteractiveSceneCfg):
+ 
+ 
+ 
+-
+-
+ @configclass
+ class NavigationEnvCfg(ManagerBasedRLEnvCfg):
+     """Configuration for the navigation environment."""
+@@ -240,9 +338,10 @@ class NavigationEnvCfg(ManagerBasedRLEnvCfg):
+ 
+         self.sim.dt = LOW_LEVEL_ENV_CFG.sim.dt
+         self.sim.render_interval = LOW_LEVEL_ENV_CFG.decimation
+-        self.decimation = LOW_LEVEL_ENV_CFG.decimation * 4
+-        self.episode_length_s = self.commands.pose_command.resampling_time_range[1]*10
+-
++        self.decimation = LOW_LEVEL_ENV_CFG.decimation * 10
++        self.episode_length_s = self.commands.pose_command.resampling_time_range[1]*3
++        self.scene.terrain2.terrain_type = "plane"
++        self.scene.terrain2.terrain_generator = None
+         if self.scene.height_scanner is not None:
+             self.scene.height_scanner.update_period = (
+                 self.actions.pre_trained_policy_action.low_level_decimation * self.sim.dt
+diff --git a/navigation/config/unitree/go2_nav_env_play_cfg.py b/navigation/config/unitree/go2_nav_env_play_cfg.py
+index 2e65969..a1fb9f7 100644
+--- a/navigation/config/unitree/go2_nav_env_play_cfg.py
++++ b/navigation/config/unitree/go2_nav_env_play_cfg.py
+@@ -41,7 +41,7 @@ from isaaclab_assets.robots.unitree import UNITREE_GO2_CFG
+ from .terrain_cfg import HfUniformDiscreteObstaclesTerrainCfg
+ from .terrain import *
+ 
+-
++from .pillar_obstacles_terrain import *
+ 
+ 
+ # LOW_LEVEL_ENV_CFG = AnymalCFlatEnvCfg()
+@@ -95,7 +95,7 @@ class ObservationsCfg:
+         """Observations for policy group."""
+ 
+         # observation terms (order preserved)
+-        base_lin_vel = ObsTerm(func=mdp.base_lin_vel)
++        # base_lin_vel = ObsTerm(func=mdp.base_lin_vel)
+         # projected_gravity = ObsTerm(func=mdp.projected_gravity)
+         pose_command = ObsTerm(func=mdp.generated_commands, params={"command_name": "pose_command"})
+         height_scan = ObsTerm(func=mdp.height_scan_nav,
+@@ -214,8 +214,18 @@ class MySceneCfg(InteractiveSceneCfg):
+         ),
+         visual_material=None,     
+     )
++    
++
++    
++    # terrain2 = TerrainImporterCfg(
++    #     prim_path="/World/ground",
++    #     terrain_type="generator",
++    #     terrain_generator=terrain_gen_cfg,
++    #     visual_material=None,     
++    # )
++    
+     # terrain = TerrainImporterCfg(prim_path="/World/ground", terrain_type="usd", 
+-    #                              usd_path="/home/nav/isaac_new/asset/Assets/Isaac/4.5/Isaac/Environments/my_scence/narrow_corrier/World1/World0.usd")
++    #             usd_path="/home/nav/isaac_new/asset/Assets/Isaac/4.5/Isaac/Environments/my_scence/narrow_corrier/World1/World0.usd")
+     
+     # robots
+     robot: ArticulationCfg = UNITREE_GO2_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+@@ -235,7 +245,7 @@ class MySceneCfg(InteractiveSceneCfg):
+         prim_path="{ENV_REGEX_NS}/Robot/base",
+         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
+         attach_yaw_only=True,
+-        pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[3.0, 2.0]),
++        pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[3.0, 3.0]),
+         debug_vis=true,
+         mesh_prim_paths=["/World/ground"],
+     )
+diff --git a/navigation/config/unitree/go2_navigation_env_cfg.py b/navigation/config/unitree/go2_navigation_env_cfg.py
+index a3ac33f..8532e00 100644
+--- a/navigation/config/unitree/go2_navigation_env_cfg.py
++++ b/navigation/config/unitree/go2_navigation_env_cfg.py
+@@ -31,7 +31,7 @@ from isaaclab.utils.assets import ISAACLAB_NUCLEUS_DIR # type: ignore
+ from navigation import mdp 
+ from isaaclab_tasks.manager_based.locomotion.velocity.config.anymal_c.flat_env_cfg import AnymalCFlatEnvCfg
+ from isaaclab_tasks.manager_based.locomotion.velocity.config.go2.rough_env_cfg import UnitreeGo2RoughEnvCfg
+-
++from isaaclab.utils.noise.noise_cfg import *
+ from isaaclab.terrains.config.rough import ROUGH_TERRAINS_CFG  # isort: skip
+ from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
+ # from isaaclab_assets.robots.anymal import ANYMAL_C_CFG 
+@@ -90,11 +90,12 @@ class ObservationsCfg:
+         """Observations for policy group."""
+ 
+         # observation terms (order preserved)
+-        base_lin_vel = ObsTerm(func=mdp.base_lin_vel)
++        # base_lin_vel = ObsTerm(func=mdp.base_lin_vel)
+         # projected_gravity = ObsTerm(func=mdp.projected_gravity)
+         pose_command = ObsTerm(func=mdp.generated_commands, params={"command_name": "pose_command"})
+         height_scan = ObsTerm(func=mdp.height_scan_nav,
+                         params={"sensor_cfg": SceneEntityCfg("height_scanner2")},
++                        noise=GaussianNoiseCfg(0.1,1.0),
+                         clip=(-1.0, 10.0))
+         
+ 
+@@ -127,29 +128,28 @@ class RewardsCfg:
+         params={"command_name": "pose_command", "threshold": 0.3},
+     )
+     
+-    base_line_vel = RewTerm(
+-        func=mdp.base_lin_vel_penalize,
+-        weight=0.1,
+-        params={"speed_limit":0.8, "penalty_coef":0.2}
+-    )
++    # base_line_vel = RewTerm(
++    #     func=mdp.base_lin_vel_penalize,
++    #     weight=0.2,
++    #     params={"speed_limit":1.0, "penalty_coef":0.2}
++    # )
+ 
+-    
+     # 取值范围 -1.5 - 0.5
+-    yaw_alignment_reward = RewTerm(
+-        func=mdp.yaw_alignment_reward,
+-        weight=0.2, 
+-        params={"command_name": "pose_command"},
+-    )
+-    obstacle_reward = RewTerm(
+-        func=mdp.obstacle_reward,
+-        weight= 1.0,
+-        params={ "z_threshold":-0.2, 
+-                "d_safe":0.8 },
+-    )
+-    # reach_goal = RewTerm(func=mdp.object_reached_goal_reward,
+-    #                 weight = 0.5,
+-    #                 params={"command_name": "pose_command", "threshold": 0.1},
+-    #                 )
++    # yaw_alignment_reward = RewTerm(
++    #     func=mdp.yaw_alignment_reward,
++    #     weight=0.3, 
++    #     params={"command_name": "pose_command"},
++    # )
++    # obstacle_reward = RewTerm(
++    #     func=mdp.obstacle_reward,
++    #     weight= 0.5,
++    #     params={ "z_threshold":-0.3, 
++    #             "d_safe":0.6 },
++    # )
++    reach_goal = RewTerm(func=mdp.object_reached_goal_reward,
++                    weight = 0.5,
++                    params={"command_name": "pose_command", "threshold": 0.1},
++                    )
+ 
+ # 随机生成目标点
+ @configclass
+@@ -159,9 +159,9 @@ class CommandsCfg:
+     pose_command = mdp.UniformPose2dCommandCfg(
+         asset_name="robot",
+         simple_heading=False,
+-        resampling_time_range=(10.0, 10.0),
++        resampling_time_range=(10.0, 20.0),
+         debug_vis=True,
+-        ranges=mdp.UniformPose2dCommandCfg.Ranges(pos_x=(-10.0, 15.0), pos_y=(-10.0, 10.0), heading=(-math.pi, math.pi)),
++        ranges=mdp.UniformPose2dCommandCfg.Ranges(pos_x=(5.0, 10.0), pos_y=(-10.0, 10.0), heading=(-math.pi, math.pi)),
+     )
+ 
+ # 终止条件
+@@ -187,54 +187,35 @@ class TerminationsCfg:
+                             params={"threshold":-0.85})
+     
+ 
+-   
+-
+ @configclass
+ class MySceneCfg(InteractiveSceneCfg):
+     """Configuration for the terrain scene with a legged robot."""
+ 
+-    # ground terrain
+-    # terrain = TerrainImporterCfg(
+-    #     prim_path="/World/ground",
+-    #     terrain_type="generator",
+-    #     terrain_generator=ROUGH_TERRAINS_CFG,
+-    #     max_init_terrain_level=5,
+-    #     collision_group=-1,
+-    #     physics_material=sim_utils.RigidBodyMaterialCfg(
+-    #         friction_combine_mode="multiply",
+-    #         restitution_combine_mode="multiply",
+-    #         static_friction=1.0,
+-    #         dynamic_friction=1.0,
+-    #     ),
+-    #     visual_material=sim_utils.MdlFileCfg(
+-    #         mdl_path=f"{ISAACLAB_NUCLEUS_DIR}/Materials/TilesMarbleSpiderWhiteBrickBondHoned/TilesMarbleSpiderWhiteBrickBondHoned.mdl",
+-    #         project_uvw=True,
+-    #         texture_scale=(0.25, 0.25),
+-    #     ),
+-    #     debug_vis=False,
+-    # )
+-    
+     terrain2 = TerrainImporterCfg(
+         prim_path="/World/ground",
+         terrain_type="generator",
+         terrain_generator=TerrainGeneratorCfg(
+             seed=0,
+-            size=(50, 50),
++            # num_cols=2,
++            # num_rows= 2,
++            size=(30, 30),
+             color_scheme="height",
+             sub_terrains={"t1": HfUniformDiscreteObstaclesTerrainCfg(
+                 seed=0,
+-                size=(50, 50),
+-                obstacle_width_range=(0.5, 1.0),
+-                obstacle_height_range=(1.0, 2.0),
+-                num_obstacles=80,
+-                obstacles_distance=2.5,
++                size=(20, 20),
++                obstacle_width_range=(0.2, 1.0),
++                obstacle_height_range=(0.5, 1.5),
++                num_obstacles=50,
++                obstacles_distance=3.0,
+                 border_width=5,
+-                avoid_positions=[[0, 0]]
++                avoid_positions=[[0, 0.0]]
+             )},
+         ),
+         visual_material=None,     
+     )
+     
++
++    
+     
+     # robots
+     robot: ArticulationCfg = UNITREE_GO2_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+@@ -290,10 +271,10 @@ class NavigationEnvCfg(ManagerBasedRLEnvCfg):
+     def __post_init__(self):
+         """Post initialization."""
+ 
+-        self.sim.dt = LOW_LEVEL_ENV_CFG.sim.dt
++        self.sim.dt = 0.001
+         self.sim.render_interval = LOW_LEVEL_ENV_CFG.decimation
+         self.decimation = LOW_LEVEL_ENV_CFG.decimation*2  # 仿真执行n步，actor网络更新一次
+-        self.episode_length_s = self.commands.pose_command.resampling_time_range[1]
++        self.episode_length_s = self.commands.pose_command.resampling_time_range[1]*5
+ 
+         if self.scene.height_scanner is not None:
+             self.scene.height_scanner.update_period = (
+diff --git a/navigation/mdp/__init__.py b/navigation/mdp/__init__.py
+index 8703b31..8292adf 100644
+--- a/navigation/mdp/__init__.py
++++ b/navigation/mdp/__init__.py
+@@ -11,3 +11,5 @@ from .pre_trained_policy_action import *  # noqa: F401, F403
+ from .rewards import *  # noqa: F401, F403
+ from .terminations import *
+ from .observations import *
++from .actions import *
++from .randomizations import *
+\ No newline at end of file
+diff --git a/navigation/mdp/observations.py b/navigation/mdp/observations.py
+index 109bf51..3bafde6 100644
+--- a/navigation/mdp/observations.py
++++ b/navigation/mdp/observations.py
+@@ -18,8 +18,6 @@ def height_scan_nav(env: ManagerBasedEnv, sensor_cfg: SceneEntityCfg, offset: fl
+ 
+     The provided offset (Defaults to 0.5) is subtracted from the returned values.
+     """
+-    # extract the used quantities (to enable type-hinting)
+     sensor: RayCaster = env.scene.sensors[sensor_cfg.name]
+-    # height scan: height = sensor_height - hit_point_z - offset
+-    # print("ray hists ", sensor.data.ray_hits_w[..., :])
+-    return  sensor.data.ray_hits_w[..., 2] - sensor.data.pos_w[:, 2].unsqueeze(1)  - offset
+\ No newline at end of file
++    result = sensor.data.ray_hits_w[..., 2] - sensor.data.pos_w[:, 2].unsqueeze(1) - offset
++    return  result
+\ No newline at end of file
+diff --git a/navigation/mdp/pre_trained_policy_action.py b/navigation/mdp/pre_trained_policy_action.py
+index a12dcc0..bba517b 100644
+--- a/navigation/mdp/pre_trained_policy_action.py
++++ b/navigation/mdp/pre_trained_policy_action.py
+@@ -95,7 +95,10 @@ class PreTrainedPolicyAction(ActionTerm):
+             actions (torch.Tensor): 导航规划器输出的动作指令---> 赋值给self._raw_actions
+         """
+         # print("action ", actions)
+-        self._raw_actions[:] = actions
++        # actions[:,0] = actions[:,0]+0.3
++        self._raw_actions[:] = actions.clamp(-1.5, 1.5)
++        # print("process action ", self._raw_actions)
++        
+         
+ 
+     def apply_actions(self):
+diff --git a/navigation/mdp/rewards.py b/navigation/mdp/rewards.py
+index dc1a1b2..462b44e 100644
+--- a/navigation/mdp/rewards.py
++++ b/navigation/mdp/rewards.py
+@@ -6,6 +6,8 @@
+ from __future__ import annotations
+ from turtle import distance
+ 
++from warp import zeros_like
++
+ from cv2 import norm
+ from regex import R
+ 
+@@ -20,6 +22,155 @@ if TYPE_CHECKING:
+     from isaaclab.envs import ManagerBasedRLEnv
+ 
+ 
++def goal_distance_change_reward(env: ManagerBasedRLEnv, command_name: str,) -> torch.Tensor:
++    """
++    Gives a penalty if the rover is too far from the target.
++    """
++
++    target = env.command_manager.get_command(command_name)
++    target_position = target[:, :2]
++    pre_target = env.command_manager.last_command
++
++    distance = torch.norm(target_position, p=2, dim=-1).to(device=env.device)
++    last_distance = torch.norm(pre_target[:,:2], p=2, dim=-1).to(device=env.device)
++
++    return torch.where(last_distance<distance, -1.0, 0.5)
++
++
++def distance_to_target_reward(env: ManagerBasedRLEnv, command_name: str) -> torch.Tensor:
++    """
++    Calculate and return the distance to the target.
++
++    This function computes the Euclidean distance between the rover and the target.
++    It then calculates a reward based on this distance, which is inversely proportional
++    to the squared distance. The reward is also normalized by the maximum episode length.
++    """
++
++    # Accessing the target's position through the command manage,
++    # we get the target position w.r.t. the robot frame
++    target = env.command_manager.get_command(command_name)
++    pre_target = env.command_manager.last_command
++    # print("cur target ", target)
++    # print("last target ", pre_target)
++    target_position = target[:, :2]
++    
++
++    # Calculating the distance and the reward
++    distance = torch.norm(target_position, p=2, dim=-1)
++
++    # Return the reward, normalized by the maximum episode length
++    return (1.0 / (1.0 + (0.11 * distance * distance))) / env.max_episode_length
++
++
++
++def reached_target(env: ManagerBasedRLEnv, command_name: str, threshold: float) -> torch.Tensor:
++    """
++    Determine whether the target has been reached.
++
++    This function checks if the rover is within a certain threshold distance from the target.
++    If the target is reached, a scaled reward is returned based on the remaining time steps.
++    """
++
++    # Accessing the target's position w.r.t. the robot frame
++    target = env.command_manager.get_command(command_name)
++    target_position = target[:, :2]
++
++    # Get angle to target
++    angle = env.command_manager.get_command(command_name)[:, 3]
++
++    # Calculating the distance and determining if the target is reached
++    distance = torch.norm(target_position, p=2, dim=-1)
++    time_steps_to_goal = env.max_episode_length - env.episode_length_buf
++    reward_scale = time_steps_to_goal / env.max_episode_length
++
++    # Return the reward, scaled depending on the remaining time steps
++    return torch.where((distance < threshold) & (torch.abs(angle) < 0.1), 2.0 * reward_scale, 0.0)
++
++def oscillation_penalty(env: ManagerBasedRLEnv) -> torch.Tensor:
++    """
++    惩罚动作震荡（只考虑纵向速度 vx 和角速度 wz，忽略横向 vy）。
++    """
++    action = env.action_manager.action         # shape: [N, 3]
++    prev_action = env.action_manager.prev_action
++
++    vx_diff = action[:, 0] - prev_action[:, 0]  # 纵向速度差
++    wz_diff = action[:, 2] - prev_action[:, 2]  # 角速度差
++
++    penalty_x = torch.where(abs(vx_diff)>0.5, -0.5, 0.2)
++    penalty_theta = torch.where(abs(wz_diff)>0.5, -0.5, 0.2)
++    
++    return penalty_x + penalty_theta 
++
++
++
++def far_from_target_reward(env: ManagerBasedRLEnv, command_name: str, threshold: float) -> torch.Tensor:
++    """
++    Gives a penalty if the rover is too far from the target.
++    """
++
++    target = env.command_manager.get_command(command_name)
++    target_position = target[:, :2]
++
++    distance = torch.norm(target_position, p=2, dim=-1)
++
++    return torch.where(distance > threshold, 1.0, 0.0)
++
++def angle_to_target_penalty(env: ManagerBasedRLEnv, command_name: str) -> torch.Tensor:
++    """
++    Calculate the penalty for the angle between the rover and the target.
++
++    This function computes the angle between the rover's heading direction and the direction
++    towards the target. A penalty is applied if this angle exceeds a certain threshold.
++    """
++
++    # Get vector(x,y) from rover to target, in base frame of the rover.
++    target_vector_b = env.command_manager.get_command(command_name)[:, :2]
++
++    # Calculate the angle between the rover's heading [1, 0] and the vector to the target.
++    angle = torch.atan2(target_vector_b[:, 1], target_vector_b[:, 0])
++
++    # Return the absolute value of the angle, normalized by the maximum episode length.
++    return torch.where(torch.abs(angle) > 2.0, torch.abs(angle) / env.max_episode_length, 0.0)
++
++def wheel_robot_excessive_speed_penalty(env:ManagerBasedRLEnv, asset_cfg:SceneEntityCfg, speed_limit:float=1.0)->torch.Tensor:
++    vel_x_penalty = torch.where(abs(env.action_manager.action[:, 0])> speed_limit, 2, 0.0)
++    vel_theta_penalty = torch.where(abs(env.action_manager.action[:, 1])> speed_limit, 2, 0.0)
++    return vel_x_penalty+vel_theta_penalty
++
++def excessive_speed_penalty(env:ManagerBasedRLEnv, asset_cfg:SceneEntityCfg, speed_limit:float=1.0)->torch.Tensor:
++    vel_x_penalty = torch.where(abs(env.action_manager.action[:, 0])> speed_limit, 3, 0.0)
++    vel_y_penalty = torch.where(abs(env.action_manager.action[:, 1])> speed_limit, 3, 0.0)
++    vel_theta_penalty = torch.where(abs(env.action_manager.action[:, 2])> speed_limit+1.0, 3, 0.0)
++    vel_x_less_penalty = torch.where(abs(env.action_manager.action[:,0])<0.1, 3, 0.0)
++    return vel_x_penalty+vel_y_penalty+vel_theta_penalty + vel_x_less_penalty
++
++def heading_soft_contraint(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg) -> torch.Tensor:
++    """
++    Calculate a penalty for driving backwards.
++    后退惩罚
++
++    This function applies a penalty when the rover's action indicates reverse movement.
++    The penalty is normalized by the maximum episode length.
++    """
++    return torch.where(env.action_manager.action[:, 0] < 0.0, (1.0 / env.max_episode_length), 0.0)
++
++def angle_to_goal_reward(env: ManagerBasedRLEnv, command_name: str) -> torch.Tensor:
++    """
++    Calculate the angle to the goal.
++
++    This function computes the angle between the rover's heading direction and the direction
++    towards the goal. A reward is given based on the cosine of this angle.
++    """
++    # Get vector(x,y) from rover to target, in base frame of the rover.
++    target_vector_b = env.command_manager.get_command(command_name)[:, :2]
++    distance = torch.norm(target_vector_b, p=2, dim=-1)
++    angle_b = env.command_manager.get_command(command_name)[:, 3]
++
++    angle_reward = (1 / (1 + distance)) * 1 / (1 + torch.abs(angle_b))
++
++    # Return the cosine of the angle, normalized by the maximum episode length.
++    return angle_reward / env.max_episode_length
++
+ def object_reached_goal_reward(
+     env: ManagerBasedRLEnv,
+     command_name: str = "pose_command",
+@@ -65,20 +216,20 @@ def heading_command_error_abs(env: ManagerBasedRLEnv, command_name: str, thresho
+     """Penalize tracking orientation error."""
+     command = env.command_manager.get_command(command_name)
+     heading_b = command[:, 3]
+-    
+-    des_pos_b = command[:, :3]
+-    distance = torch.norm(des_pos_b, dim=1)
+-    
+-    # print("des pose ", command)
+-    # print("heading_b.abs(): ",heading_b.abs())
+-    rewards = torch.where(
+-        distance < threshold,
+-        torch.abs(heading_b),
+-        torch.zeros_like(heading_b)
+-    )
+-    #print("heading reward ", rewards)
+-    return rewards
++    return heading_b.abs()
+ 
++def base_line_vel_y_penalize (env: ManagerBasedRLEnv,
++    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
++    speed_limit: float = 1.0,  # 新增速度阈值参数
++    penalty_coef: float = 1.0    # 新增惩罚系数
++)-> torch.Tensor:
++    # 获取机器人实体
++    asset: RigidObject = env.scene[asset_cfg.name]
++    
++  # 获取所有环境实例的y轴速度绝对值
++    line_y_vel_abs = torch.abs(asset.data.root_lin_vel_b[:, 1]) 
++    # print("vel y penalty ", penalty_coef*line_y_vel_abs)
++    return penalty_coef* line_y_vel_abs
+ 
+ def base_lin_vel_penalize(
+     env: ManagerBasedRLEnv,
+@@ -120,13 +271,9 @@ def base_lin_vel_penalize(
+             torch.zeros_like(line_x_vel) + 0.2  # 情况3：安全范围不惩罚
+         )
+     )
+-    # 获取所有环境实例的y轴速度绝对值
+-    line_y_vel_abs = torch.abs(asset.data.root_lin_vel_b[:, 1]) 
+-    
+-    vel_y_penalty = line_y_vel_abs*-1.0
+-    
++
+     #print("line vel reward ", reward)
+-    return reward + vel_y_penalty
++    return reward 
+ 
+ 
+ def yaw_alignment_reward(env: ManagerBasedRLEnv, 
+@@ -177,16 +324,16 @@ def obstacle_reward(env: ManagerBasedRLEnv,
+ 
+     # 将高度大于阈值的赋值obstacle_distance，其余置零
+     # result = ray_data_w.clone()
+-    ray_data_w[:, :, 2] = torch.where(mask, obstacle_distance, torch.zeros_like(third_elements))
+-    last_elements = ray_data_w[:, :, -1]
++    ray_data_w[:, :, 2] = torch.where(mask, obstacle_distance, torch.zeros_like(third_elements)+3.0)
++    obs_distance = ray_data_w[:, :, -1]
+     reward =  torch.where(
+-        last_elements[:,:]<d_safe,
+-        last_elements+5.0,
+-        torch.zeros_like(last_elements)
++        obs_distance[:,:]<d_safe,
++        obstacle_distance*12.5-12,
++        torch.zeros_like(obs_distance)
+     )
+-    reward *= last_elements 
+-    reward = -reward.sum(dim=1)
+-    #print("obstacle reward ", reward)
++    reward, indices = torch.min(reward, dim=-1)
++    # print(reward.size())
++    # print("obstacle reward ", reward)
+     #print("-----------------------------\n")
+     return reward
+ 
+diff --git a/navigation/mdp/terminations.py b/navigation/mdp/terminations.py
+index 3c17973..540ad67 100644
+--- a/navigation/mdp/terminations.py
++++ b/navigation/mdp/terminations.py
+@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
+ 
+ from isaaclab.assets import Articulation, RigidObject
+ from isaaclab.managers import SceneEntityCfg
+-from isaaclab.sensors import ContactSensor
++from isaaclab.sensors import ContactSensor, RayCaster
+ 
+ if TYPE_CHECKING:
+     from isaaclab.envs import ManagerBasedRLEnv
+@@ -52,4 +52,58 @@ def object_reached_goal(
+     des_pos_b = command[:, :3]
+     # diff = current_robot_pose - des_pos_b
+     distances = torch.norm(des_pos_b, dim=1)
+-    return distances< threshold
+\ No newline at end of file
++    return distances< threshold
++
++def obstacle_reward(env: ManagerBasedRLEnv, 
++                    sensor_cfg: SceneEntityCfg= SceneEntityCfg("height_scanner2"), 
++                    z_threshold: float = 0.3,
++                    d_safe : float = 0.5) -> torch.Tensor:
++    """Height scan from the given sensor w.r.t. the sensor's frame.
++
++    The provided offset (Defaults to 0.5) is subtracted from the returned values.
++    """
++    # extract the used quantities (to enable type-hinting)
++    sensor: RayCaster = env.scene.sensors[sensor_cfg.name]
++    # height scan: height = sensor_height - hit_point_z - offset 
++    ray_data_w = sensor.data.ray_hits_w - sensor.data.pos_w.unsqueeze(1)
++    
++        # 提取第三个元素并生成掩码
++    third_elements = ray_data_w[:, :, 2]
++    mask = third_elements > z_threshold
++
++    # 计算前两个元素的二范数
++ 
++    obstacle_point_xy = ray_data_w[...,:2]
++    
++    obstacle_distance = torch.norm(obstacle_point_xy, p=2, dim=2)  # 形状 (2, 3)
++
++    # 将高度大于阈值的赋值obstacle_distance，其余置零
++    # result = ray_data_w.clone()
++    ray_data_w[:, :, 2] = torch.where(mask, obstacle_distance, torch.zeros_like(third_elements)+3.0)
++    obs_distance = ray_data_w[:, :, -1]
++    reward =  torch.where(
++        obs_distance[:,:]<d_safe,
++        obstacle_distance*12.5-12,
++        torch.zeros_like(obs_distance)
++    )
++    reward, indices = torch.min(reward, dim=-1)
++    # print(reward.size())
++    # print("obstacle reward ", reward)
++    #print("-----------------------------\n")
++    return reward
++
++def collision_with_obstacles(env: ManagerBasedRLEnv, sensor_cfg: SceneEntityCfg, threshold: float) -> torch.Tensor:
++    """
++    Checks for collision with obstacles.
++    """
++    # Accessing the contact sensor and its data
++    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
++
++    # Reshape as follows (num_envs, num_bodies, 3)
++    force_matrix = contact_sensor.data.force_matrix_w.view(env.num_envs, -1, 3)
++
++    # Calculating the force and returning true if it is above the threshold
++    normalized_forces = torch.norm(force_matrix, dim=1)
++    forces_active = torch.sum(normalized_forces, dim=-1) > threshold
++
++    return torch.where(forces_active, True, False)
+\ No newline at end of file
+diff --git a/rsl_rl/cli_args.py b/rsl_rl/cli_args.py
+deleted file mode 100644
+index 96747ae..0000000
+--- a/rsl_rl/cli_args.py
++++ /dev/null
+@@ -1,91 +0,0 @@
+-# Copyright (c) 2022-2025, The Isaac Lab Project Developers.
+-# All rights reserved.
+-#
+-# SPDX-License-Identifier: BSD-3-Clause
+-
+-from __future__ import annotations
+-
+-import argparse
+-import random
+-from typing import TYPE_CHECKING
+-
+-if TYPE_CHECKING:
+-    from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg
+-
+-
+-def add_rsl_rl_args(parser: argparse.ArgumentParser):
+-    """Add RSL-RL arguments to the parser.
+-
+-    Args:
+-        parser: The parser to add the arguments to.
+-    """
+-    # create a new argument group
+-    arg_group = parser.add_argument_group("rsl_rl", description="Arguments for RSL-RL agent.")
+-    # -- experiment arguments
+-    arg_group.add_argument(
+-        "--experiment_name", type=str, default=None, help="Name of the experiment folder where logs will be stored."
+-    )
+-    arg_group.add_argument("--run_name", type=str, default=None, help="Run name suffix to the log directory.")
+-    # -- load arguments
+-    arg_group.add_argument("--resume", type=bool, default=None, help="Whether to resume from a checkpoint.")
+-    arg_group.add_argument("--load_run", type=str, default=None, help="Name of the run folder to resume from.")
+-    arg_group.add_argument("--checkpoint", type=str, default=None, help="Checkpoint file to resume from.")
+-    # -- logger arguments
+-    arg_group.add_argument(
+-        "--logger", type=str, default=None, choices={"wandb", "tensorboard", "neptune"}, help="Logger module to use."
+-    )
+-    arg_group.add_argument(
+-        "--log_project_name", type=str, default=None, help="Name of the logging project when using wandb or neptune."
+-    )
+-
+-
+-def parse_rsl_rl_cfg(task_name: str, args_cli: argparse.Namespace) -> RslRlOnPolicyRunnerCfg:
+-    """Parse configuration for RSL-RL agent based on inputs.
+-
+-    Args:
+-        task_name: The name of the environment.
+-        args_cli: The command line arguments.
+-
+-    Returns:
+-        The parsed configuration for RSL-RL agent based on inputs.
+-    """
+-    from isaaclab_tasks.utils.parse_cfg import load_cfg_from_registry
+-
+-    # load the default configuration
+-    rslrl_cfg: RslRlOnPolicyRunnerCfg = load_cfg_from_registry(task_name, "rsl_rl_cfg_entry_point")
+-    rslrl_cfg = update_rsl_rl_cfg(rslrl_cfg, args_cli)
+-    return rslrl_cfg
+-
+-
+-def update_rsl_rl_cfg(agent_cfg: RslRlOnPolicyRunnerCfg, args_cli: argparse.Namespace):
+-    """Update configuration for RSL-RL agent based on inputs.
+-
+-    Args:
+-        agent_cfg: The configuration for RSL-RL agent.
+-        args_cli: The command line arguments.
+-
+-    Returns:
+-        The updated configuration for RSL-RL agent based on inputs.
+-    """
+-    # override the default configuration with CLI arguments
+-    if hasattr(args_cli, "seed") and args_cli.seed is not None:
+-        # randomly sample a seed if seed = -1
+-        if args_cli.seed == -1:
+-            args_cli.seed = random.randint(0, 10000)
+-        agent_cfg.seed = args_cli.seed
+-    if args_cli.resume is not None:
+-        agent_cfg.resume = args_cli.resume
+-    if args_cli.load_run is not None:
+-        agent_cfg.load_run = args_cli.load_run
+-    if args_cli.checkpoint is not None:
+-        agent_cfg.load_checkpoint = args_cli.checkpoint
+-    if args_cli.run_name is not None:
+-        agent_cfg.run_name = args_cli.run_name
+-    if args_cli.logger is not None:
+-        agent_cfg.logger = args_cli.logger
+-    # set the project name for wandb and neptune
+-    if agent_cfg.logger in {"wandb", "neptune"} and args_cli.log_project_name:
+-        agent_cfg.wandb_project = args_cli.log_project_name
+-        agent_cfg.neptune_project = args_cli.log_project_name
+-
+-    return agent_cfg
+diff --git a/rsl_rl/go2_ctrl.py b/rsl_rl/go2_ctrl.py
+deleted file mode 100644
+index bd2d158..0000000
+--- a/rsl_rl/go2_ctrl.py
++++ /dev/null
+@@ -1,56 +0,0 @@
+-import os
+-import torch
+-import carb
+-
+-
+-base_vel_cmd_input = None
+-
+-# Initialize base_vel_cmd_input as a tensor when created
+-def init_base_vel_cmd(num_envs):
+-    global base_vel_cmd_input
+-    base_vel_cmd_input = torch.zeros((num_envs, 3), dtype=torch.float32)
+-
+-
+-
+-# Update sub_keyboard_event to modify specific rows of the tensor based on key inputs
+-def sub_keyboard_event(event) -> bool:
+-    global base_vel_cmd_input
+-    lin_vel = 1.5
+-    ang_vel = 1.5
+-    
+-    if base_vel_cmd_input is not None:
+-        if event.type == carb.input.KeyboardEventType.KEY_PRESS:
+-            # Update tensor values for environment 0
+-            if event.input.name == 'W':
+-                base_vel_cmd_input[0] = torch.tensor([lin_vel, 0, 0], dtype=torch.float32)
+-            elif event.input.name == 'S':
+-                base_vel_cmd_input[0] = torch.tensor([-lin_vel, 0, 0], dtype=torch.float32)
+-            elif event.input.name == 'A':
+-                base_vel_cmd_input[0] = torch.tensor([0, lin_vel, 0], dtype=torch.float32)
+-            elif event.input.name == 'D':
+-                base_vel_cmd_input[0] = torch.tensor([0, -lin_vel, 0], dtype=torch.float32)
+-            elif event.input.name == 'Z':
+-                base_vel_cmd_input[0] = torch.tensor([0, 0, ang_vel], dtype=torch.float32)
+-            elif event.input.name == 'C':
+-                base_vel_cmd_input[0] = torch.tensor([0, 0, -ang_vel], dtype=torch.float32)
+-            
+-            # If there are multiple environments, handle inputs for env 1
+-            if base_vel_cmd_input.shape[0] > 1:
+-                if event.input.name == 'I':
+-                    base_vel_cmd_input[1] = torch.tensor([lin_vel, 0, 0], dtype=torch.float32)
+-                elif event.input.name == 'K':
+-                    base_vel_cmd_input[1] = torch.tensor([-lin_vel, 0, 0], dtype=torch.float32)
+-                elif event.input.name == 'J':
+-                    base_vel_cmd_input[1] = torch.tensor([0, lin_vel, 0], dtype=torch.float32)
+-                elif event.input.name == 'L':
+-                    base_vel_cmd_input[1] = torch.tensor([0, -lin_vel, 0], dtype=torch.float32)
+-                elif event.input.name == 'M':
+-                    base_vel_cmd_input[1] = torch.tensor([0, 0, ang_vel], dtype=torch.float32)
+-                elif event.input.name == '>':
+-                    base_vel_cmd_input[1] = torch.tensor([0, 0, -ang_vel], dtype=torch.float32)
+-        
+-        # Reset commands to zero on key release
+-        elif event.type == carb.input.KeyboardEventType.KEY_RELEASE:
+-            base_vel_cmd_input.zero_()
+-    return True
+-
+diff --git a/rsl_rl/go2_sim.py b/rsl_rl/go2_sim.py
+deleted file mode 100644
+index 71ab706..0000000
+--- a/rsl_rl/go2_sim.py
++++ /dev/null
+@@ -1,175 +0,0 @@
+-# Copyright (c) 2022-2025, The Isaac Lab Project Developers.
+-# All rights reserved.
+-#
+-# SPDX-License-Identifier: BSD-3-Clause
+-
+-"""Script to play a checkpoint if an RL agent from RSL-RL."""
+-
+-"""Launch Isaac Sim Simulator first."""
+-
+-import argparse
+-
+-from isaaclab.app import AppLauncher
+-
+-# local imports
+-import cli_args  # isort: skip
+-
+-# add argparse arguments
+-parser = argparse.ArgumentParser(description="Train an RL agent with RSL-RL.")
+-parser.add_argument("--video", action="store_true", default=False, help="Record videos during training.")
+-parser.add_argument("--video_length", type=int, default=200, help="Length of the recorded video (in steps).")
+-parser.add_argument(
+-    "--disable_fabric", action="store_true", default=False, help="Disable fabric and use USD I/O operations."
+-)
+-parser.add_argument("--num_envs", type=int, default=None, help="Number of environments to simulate.")
+-parser.add_argument("--task", type=str, default=None, help="Name of the task.")
+-parser.add_argument(
+-    "--use_pretrained_checkpoint",
+-    action="store_true",
+-    help="Use the pre-trained checkpoint from Nucleus.",
+-)
+-parser.add_argument("--real-time", action="store_true", default=False, help="Run in real-time, if possible.")
+-# append RSL-RL cli arguments
+-cli_args.add_rsl_rl_args(parser)
+-# append AppLauncher cli args
+-AppLauncher.add_app_launcher_args(parser)
+-args_cli = parser.parse_args()
+-# always enable cameras to record video
+-if args_cli.video:
+-    args_cli.enable_cameras = True
+-
+-# launch omniverse app
+-app_launcher = AppLauncher(args_cli)
+-simulation_app = app_launcher.app
+-
+-"""Rest everything follows."""
+-
+-import gymnasium as gym
+-import os
+-import time
+-import torch
+-import sys
+-from pathlib import Path
+-
+-from rsl_rl.runners import OnPolicyRunner
+-
+-from isaaclab.envs import DirectMARLEnv, multi_agent_to_single_agent
+-from isaaclab.utils.assets import retrieve_file_path
+-from isaaclab.utils.dict import print_dict
+-from isaaclab.utils.pretrained_checkpoint import get_published_pretrained_checkpoint
+-
+-from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlVecEnvWrapper, export_policy_as_jit, export_policy_as_onnx
+-
+-ROOT_DIR = Path(__file__).parent.parent
+-sys.path.append(str(ROOT_DIR))
+-
+-import navigation
+-import isaaclab_tasks  # noqa: F401
+-from isaaclab_tasks.utils import get_checkpoint_path, parse_env_cfg
+-import go2_ctrl
+-import carb
+-import omni
+-
+-
+-system_input = carb.input.acquire_input_interface()
+-system_input.subscribe_to_keyboard_events(
+-    omni.appwindow.get_default_app_window().get_keyboard(), go2_ctrl.sub_keyboard_event)
+-
+-
+-def main():
+-    """Play with RSL-RL agent."""
+-    # parse configuration
+-    env_cfg = parse_env_cfg(
+-        args_cli.task, device=args_cli.device, num_envs=args_cli.num_envs, use_fabric=not args_cli.disable_fabric
+-    )
+-    agent_cfg: RslRlOnPolicyRunnerCfg = cli_args.parse_rsl_rl_cfg(args_cli.task, args_cli)
+-
+-    # specify directory for logging experiments
+-    log_root_path = os.path.join("logs", "rsl_rl", agent_cfg.experiment_name)
+-    log_root_path = os.path.abspath(log_root_path)
+-    print(f"[INFO] Loading experiment from directory: {log_root_path}")
+-    if args_cli.use_pretrained_checkpoint:
+-        resume_path = get_published_pretrained_checkpoint("rsl_rl", args_cli.task)
+-        if not resume_path:
+-            print("[INFO] Unfortunately a pre-trained checkpoint is currently unavailable for this task.")
+-            return
+-    elif args_cli.checkpoint:
+-        resume_path = retrieve_file_path(args_cli.checkpoint)
+-    else:
+-        resume_path = get_checkpoint_path(log_root_path, agent_cfg.load_run, agent_cfg.load_checkpoint)
+-
+-    log_dir = os.path.dirname(resume_path)
+-
+-    # create isaac environment
+-    env = gym.make(args_cli.task, cfg=env_cfg, render_mode="rgb_array" if args_cli.video else None)
+-
+-    # convert to single-agent instance if required by the RL algorithm
+-    if isinstance(env.unwrapped, DirectMARLEnv):
+-        env = multi_agent_to_single_agent(env)
+-
+-    # wrap for video recording
+-    if args_cli.video:
+-        video_kwargs = {
+-            "video_folder": os.path.join(log_dir, "videos", "play"),
+-            "step_trigger": lambda step: step == 0,
+-            "video_length": args_cli.video_length,
+-            "disable_logger": True,
+-        }
+-        print("[INFO] Recording videos during training.")
+-        print_dict(video_kwargs, nesting=4)
+-        env = gym.wrappers.RecordVideo(env, **video_kwargs)
+-
+-    # wrap around environment for rsl-rl
+-    env = RslRlVecEnvWrapper(env)
+-
+-    print(f"[INFO]: Loading model checkpoint from: {resume_path}")
+-    # load previously trained model
+-    ppo_runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=None, device=agent_cfg.device)
+-    ppo_runner.load(resume_path)
+-
+-    # obtain the trained policy for inference
+-    policy = ppo_runner.get_inference_policy(device=env.unwrapped.device)
+-
+-    # export policy to onnx/jit
+-    export_model_dir = os.path.join(os.path.dirname(resume_path), "exported")
+-    export_policy_as_jit(
+-        ppo_runner.alg.actor_critic, ppo_runner.obs_normalizer, path=export_model_dir, filename="policy.pt"
+-    )
+-    export_policy_as_onnx(
+-        ppo_runner.alg.actor_critic, normalizer=ppo_runner.obs_normalizer, path=export_model_dir, filename="policy.onnx"
+-    )
+-
+-    dt = env.unwrapped.physics_dt
+-
+-    # reset environment
+-    obs, _ = env.get_observations()
+-    timestep = 0
+-    # simulate environment
+-    while simulation_app.is_running():
+-        start_time = time.time()
+-        # run everything in inference mode
+-        with torch.inference_mode():
+-            # agent stepping
+-            actions = policy(obs)
+-            # env stepping
+-            obs, _, _, _ = env.step(actions)
+-        if args_cli.video:
+-            timestep += 1
+-            # Exit the play loop after recording one video
+-            if timestep == args_cli.video_length:
+-                break
+-
+-        # time delay for real-time evaluation
+-        sleep_time = dt - (time.time() - start_time)
+-        if args_cli.real_time and sleep_time > 0:
+-            time.sleep(sleep_time)
+-
+-    # close the simulator
+-    env.close()
+-
+-
+-if __name__ == "__main__":
+-    # run the main function
+-    main()
+-    # close sim app
+-    simulation_app.close()
+diff --git a/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/events.out.tfevents.1742208359.nav.108294.0 b/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/events.out.tfevents.1742208359.nav.108294.0
+deleted file mode 100644
+index 3949a7d..0000000
+Binary files a/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/events.out.tfevents.1742208359.nav.108294.0 and /dev/null differ
+diff --git a/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/exported/policy.onnx b/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/exported/policy.onnx
+deleted file mode 100644
+index 1eb1520..0000000
+Binary files a/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/exported/policy.onnx and /dev/null differ
+diff --git a/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/exported/policy.pt b/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/exported/policy.pt
+deleted file mode 100644
+index f226605..0000000
+Binary files a/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/exported/policy.pt and /dev/null differ
+diff --git a/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/git/isaac_go2_ros1_nav.diff b/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/git/isaac_go2_ros1_nav.diff
+deleted file mode 100644
+index 1bcacde..0000000
+--- a/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/git/isaac_go2_ros1_nav.diff
++++ /dev/null
+@@ -1,433 +0,0 @@
+---- git status ---
+-On branch main
+-Your branch is based on 'origin/master', but the upstream is gone.
+-  (use "git branch --unset-upstream" to fixup)
+-
+-Changes not staged for commit:
+-  (use "git add <file>..." to update what will be committed)
+-  (use "git restore <file>..." to discard changes in working directory)
+-	modified:   env/terrain.py
+-	modified:   env/terrain_cfg.py
+-	modified:   go2/go2_env.py
+-	modified:   go2/mdp/event.py
+-	modified:   go2/mdp/terminations.py
+-	modified:   isaac_go2_ros2.py
+-	modified:   test/contact.py
+-	modified:   test/learn_torch.py
+-
+-Untracked files:
+-  (use "git add <file>..." to include in what will be committed)
+-	.vscode/
+-	ckpts/unitree_go2/anymal_c_navigation/
+-	env/__init__.py
+-	navigation/
+-	rsl_rl/
+-	test/contact_sensor.py
+-
+-no changes added to commit (use "git add" and/or "git commit -a") 
+-
+-
+---- git diff ---
+-diff --git a/env/terrain.py b/env/terrain.py
+-index 902a79c..9289cb0 100644
+---- a/env/terrain.py
+-+++ b/env/terrain.py
+-@@ -1,4 +1,5 @@
+--from omni.isaac.lab.terrains.height_field.utils import height_field_to_mesh
+-+# from omni.isaac.lab.terrains.height_field.utils import height_field_to_mesh
+-+from isaaclab.terrains.height_field.utils import height_field_to_mesh
+- import numpy as np
+- import time
+- 
+-diff --git a/env/terrain_cfg.py b/env/terrain_cfg.py
+-index 730396e..4b9ea7e 100644
+---- a/env/terrain_cfg.py
+-+++ b/env/terrain_cfg.py
+-@@ -1,6 +1,9 @@
+--from omni.isaac.lab.terrains.height_field.hf_terrains_cfg import HfTerrainBaseCfg
+-+# from omni.isaac.lab.terrains.height_field.hf_terrains_cfg import HfTerrainBaseCfg
+-+from isaaclab.terrains.height_field.hf_terrains_cfg import HfTerrainBaseCfg
+-+
+- import env.terrain as terrain
+--from omni.isaac.lab.utils import configclass
+-+# from omni.isaac.lab.utils import configclass
+-+from isaaclab.utils import configclass
+- from dataclasses import MISSING
+- 
+- @configclass
+-diff --git a/go2/go2_env.py b/go2/go2_env.py
+-index 9dd5e45..624f32f 100644
+---- a/go2/go2_env.py
+-+++ b/go2/go2_env.py
+-@@ -46,7 +46,12 @@ class Go2SimCfg(InteractiveSceneCfg):
+- 
+-     # Go2 foot contact sensor
+-     
+--    contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Go2/.*", history_length=0, track_air_time=True, debug_vis = True)
+-+    contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Go2/.*thigh", 
+-+                                      history_length=3, 
+-+                                      track_air_time=True, 
+-+                                      debug_vis = True,
+-+                                      filter_prim_paths_expr=["{ENV_REGEX_NS}/obstacleTerrain"],
+-+                                    )
+- 
+-     # Go2 height scanner
+-     height_scanner = RayCasterCfg(
+-@@ -125,27 +130,54 @@ class CommandsCfg:
+- class EventCfg:
+-     """Configuration for events."""
+-     reset_base = EventTerm(
+--        func=mdp.reset_root_state_uniform,
+-+        func=mdp.reset_go2_state,
+-         mode="reset",
+-         params={
+--            "pose_range": {"x": (-0.0, 0.0), "y": (-0.0, 0.0), "yaw": (-0.0, 0.0)},
+-+            "pose_range": {"x": (-0.0, 0.0), "y": (0.5, 0.5), "z":(-0.1, -0.1) ,"yaw": (-0.3, -0.3)},
+-             "velocity_range": {
+-                 "x": (-0.0, 0.0),
+--                "y": (0.5, 0.5),
+-+                "y": (0.0, 0.0),
+-                 "z": (-0.0, 0.0),
+-                 "roll": (-0.0, 0.0),
+-                 "pitch": (-0.0, 0.0),
+-                 "yaw": (-0.0, 0.0),
+-             },
+--            "asset_cfg": SceneEntityCfg(name="unitree_go2")
+-+            "asset_cfg": SceneEntityCfg(name="unitree_go2"),
+-+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*thigh")
+-         },
+-     )
+-     
+--    reset_force = EventTerm(
+--        func=mdp.reset_contact,
+--        mode="reset",
+--        # params={"sensor_cfg": SceneEntityCfg("contact_forces",body_names=".*thigh")}
+--    )
+-+    # reset_base = EventTerm(
+-+    #     func=mdp.reset_joint_pose_vel,
+-+    #     mode="reset",
+-+    #     params={
+-+    #         "asset_cfg": SceneEntityCfg(name="unitree_go2")
+-+    #     },
+-+    # )
+-+    
+-+    # base_external_force_torque = EventTerm(
+-+    #     func=mdp.apply_external_force_torque,
+-+    #     mode="reset",
+-+    #     params={
+-+    #         "asset_cfg": SceneEntityCfg("unitree_go2", body_names=".*thigh"),
+-+    #         "force_range": (0.0, 0.0),
+-+    #         "torque_range": (-0.0, 0.0),
+-+    #     },
+-+    # )
+-+    
+-+    # reset_scene_to_default = EventTerm(func=mdp.reset_scene_to_default, mode="reset")
+-+    
+-+        
+-+    # base_external_force_torque = EventTerm(
+-+    #     func=mdp.contact_reset,
+-+    #     mode="reset",
+-+    #     params={
+-+    #         "asset_cfg": SceneEntityCfg("contact_forces", body_names=".*thigh"),
+-+    #     },
+-+    # )
+-+    
+-+    
+-+
+-     
+- 
+- @configclass
+-@@ -169,18 +201,18 @@ class RewardsCfg:
+- class TerminationsCfg:
+-     """Termination terms for the MDP."""
+-         # (1) Time out
+--    # time_out = DoneTerm(func=mdp.time_out, time_out=True)
+-+    time_out = DoneTerm(func=mdp.time_out, time_out=True)
+-     
+-     # reach_goal = DoneTerm(func=mdp.object_reached_goal,params={"robot_cfg": SceneEntityCfg(name="unitree_go2"), "command_name": "pose_command"})
+- 
+-     thigh_contact = DoneTerm(
+--        func=mdp.illegal_contact,
+-+        func=mdp.detec_collision,
+-         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*thigh"), "threshold": 1.0},
+-     )
+--    head_contact = DoneTerm(
+--        func=mdp.illegal_contact,
+--        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="Head_lower"), "threshold": 1.0},
+--    )
+-+    # head_contact = DoneTerm(
+-+    #     func=mdp.illegal_contact,
+-+    #     params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="Head_lower"), "threshold": 1.0},
+-+    # )
+-     
+- @configclass
+- class CurriculumCfg:
+-diff --git a/go2/mdp/event.py b/go2/mdp/event.py
+-index 6f68a3e..4b5db65 100644
+---- a/go2/mdp/event.py
+-+++ b/go2/mdp/event.py
+-@@ -1,18 +1,101 @@
+- from __future__ import annotations
+- 
+- import torch
+--from typing import TYPE_CHECKING
+-+import time
+-+from typing import TYPE_CHECKING, Literal
+- 
+--from omni.isaac.lab.assets import Articulation, RigidObject
+--from omni.isaac.lab.managers import SceneEntityCfg
+--from omni.isaac.lab.sensors import ContactSensor
+-+import carb
+-+import omni.physics.tensors.impl.api as physx
+-+
+-+import omni.isaac.lab.sim as sim_utils
+-+import omni.isaac.lab.utils.math as math_utils
+-+from omni.isaac.lab.actuators import ImplicitActuator
+-+from omni.isaac.lab.assets import Articulation, DeformableObject, RigidObject
+-+from omni.isaac.lab.managers import EventTermCfg, ManagerTermBase, SceneEntityCfg
+-+from omni.isaac.lab.terrains import TerrainImporter
+- 
+- if TYPE_CHECKING:
+--    from omni.isaac.lab.envs import ManagerBasedRLEnv
+--    from omni.isaac.lab.managers.command_manager import CommandTerm
+-+    from omni.isaac.lab.envs import ManagerBasedEnv
+-+from omni.isaac.lab.sensors import ContactSensor
+-+    
+-+def contact_reset(
+-+    env: ManagerBasedEnv,
+-+    env_ids: torch.Tensor,
+-+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+-+):
+-+    contact_fores: ContactSensor = env.scene.sensors[asset_cfg.name]
+-+    print("\n [reset] name ", asset_cfg.name)
+-+    contact_fores.reset()
+-+    net_contact_forces_history = contact_fores.data.net_forces_w_history #四维数据 [环境数、历史轨迹、身体部位、xyz方向上的力]
+-+    force_magnitude = torch.norm(net_contact_forces_history,dim=-1)
+-+    print("   after reset  force magnitude ", force_magnitude)
+-+  
+-+def reset_joint_pose_vel(env: ManagerBasedEnv,
+-+    env_ids: torch.Tensor,
+-+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")):
+-     
+--def reset_contact(env: ManagerBasedRLEnv,env_ids: torch.Tensor,):
+--    """Terminate when the contact force on the sensor exceeds the force threshold."""
+-+    asset: Articulation = env.scene[asset_cfg.name]
+-+    # get default joint state
+-+    joint_pos = asset.data.default_joint_pos[env_ids].clone()
+-+    joint_vel = asset.data.default_joint_vel[env_ids].clone()
+-+    asset.write_joint_state_to_sim(joint_pos, joint_vel, env_ids=env_ids)
+-+   
+-+
+-+def reset_go2_state(
+-+    env: ManagerBasedEnv,
+-+    env_ids: torch.Tensor,
+-+    pose_range: dict[str, tuple[float, float]],
+-+    velocity_range: dict[str, tuple[float, float]],
+-+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+-+    sensor_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+-+):
+-+    """Reset the asset root state to a random position and velocity uniformly within the given ranges.
+-+
+-+    This function randomizes the root position and velocity of the asset.
+-+
+-+    * It samples the root position from the given ranges and adds them to the default root position, before setting
+-+      them into the physics simulation.
+-+    * It samples the root orientation from the given ranges and sets them into the physics simulation.
+-+    * It samples the root velocity from the given ranges and sets them into the physics simulation.
+-+
+-+    The function takes a dictionary of pose and velocity ranges for each axis and rotation. The keys of the
+-+    dictionary are ``x``, ``y``, ``z``, ``roll``, ``pitch``, and ``yaw``. The values are tuples of the form
+-+    ``(min, max)``. If the dictionary does not contain a key, the position or velocity is set to zero for that axis.
+-+    """
+-     # extract the used quantities (to enable type-hinting)
+--    contact_sensor: ContactSensor = env.scene.sensors["contact_fores"]
+--    contact_sensor.reset()
+-+
+-+    asset: RigidObject | Articulation = env.scene[asset_cfg.name]
+-+    # get default root state
+-+    root_states = asset.data.default_root_state[env_ids].clone()
+-+
+-+    # poses
+-+    range_list = [pose_range.get(key, (0.0, 0.0)) for key in ["x", "y", "z", "roll", "pitch", "yaw"]]
+-+    ranges = torch.tensor(range_list, device=asset.device)
+-+    rand_samples = math_utils.sample_uniform(ranges[:, 0], ranges[:, 1], (len(env_ids), 6), device=asset.device)
+-+    print("env_origins ", env.scene.env_origins[env_ids])
+-+    positions = root_states[:, 0:3] + env.scene.env_origins[env_ids] + rand_samples[:, 0:3]
+-+    orientations_delta = math_utils.quat_from_euler_xyz(rand_samples[:, 3], rand_samples[:, 4], rand_samples[:, 5])
+-+    orientations = math_utils.quat_mul(root_states[:, 3:7], orientations_delta)
+-+    # velocities
+-+    range_list = [velocity_range.get(key, (0.0, 0.0)) for key in ["x", "y", "z", "roll", "pitch", "yaw"]]
+-+    ranges = torch.tensor(range_list, device=asset.device)
+-+    rand_samples = math_utils.sample_uniform(ranges[:, 0], ranges[:, 1], (len(env_ids), 6), device=asset.device)
+-+
+-+    velocities = root_states[:, 7:13] + rand_samples
+-+
+-+    # set into the physics simulation
+-+    print("positions ", positions)
+-+    asset.write_root_link_pose_to_sim(torch.cat([positions, orientations], dim=-1), env_ids=env_ids)
+-+    asset.write_root_com_velocity_to_sim(velocities, env_ids=env_ids)    
+-+
+-+    asset2: Articulation = env.scene[asset_cfg.name]
+-+        # get default joint state
+-+    joint_pos = asset2.data.default_joint_pos[env_ids].clone()
+-+    joint_vel = asset2.data.default_joint_vel[env_ids].clone()
+-+    print("joint default pose ", joint_pos)
+-+    asset2.write_joint_state_to_sim(joint_pos, joint_vel, env_ids=env_ids)
+-+    env.scene.reset()
+-+
+-+    
+-+    # contact_fores: ContactSensor = env.scene.sensors[sensor_cfg.name]
+-+    # contact_fores.reset()
+-\ No newline at end of file
+-diff --git a/go2/mdp/terminations.py b/go2/mdp/terminations.py
+-index b1f1571..4078946 100644
+---- a/go2/mdp/terminations.py
+-+++ b/go2/mdp/terminations.py
+-@@ -22,7 +22,12 @@ from omni.isaac.lab.assets import Articulation, RigidObject
+- 
+- if TYPE_CHECKING:
+-     from omni.isaac.lab.envs import ManagerBasedRLEnv
+-+    from omni.isaac.lab.managers.command_manager import CommandTerm
+- 
+-+from omni.isaac.lab.sensors import ContactSensor
+-+
+-+
+-+    
+- 
+- def object_reached_goal(
+-     env: ManagerBasedRLEnv,
+-@@ -66,4 +71,39 @@ def action_limitations(
+-     x = ee_tool[:,0] - robot.data.root_state_w[:, 0]
+-     y = ee_tool[:,1] - robot.data.root_state_w[:, 1]
+- 
+--    return (ee_tool[:,2] < 0.2) | (ee_tool[:,2] > 2.0) | (y > 0.5) | (y < -0.2) | (x < 0.1)
+-\ No newline at end of file
+-+    return (ee_tool[:,2] < 0.2) | (ee_tool[:,2] > 2.0) | (y > 0.5) | (y < -0.2) | (x < 0.1)
+-+
+-+def illegal_contact2(env: ManagerBasedRLEnv, threshold: float, sensor_cfg: SceneEntityCfg) -> torch.Tensor:
+-+    """Terminate when the contact force on the sensor exceeds the force threshold."""
+-+    # extract the used quantities (to enable type-hinting)
+-+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+-+    net_contact_forces = contact_sensor.data.net_forces_w #四维数据 [环境数、历史轨迹、身体部位、xyz方向上的力]
+-+    # print("net contact forces: ", net_contact_forces.shape)
+-+    # print("net contact sum : ", net_contact_forces)
+-+
+-+    print("\n ---------- \n  sensor name: ", sensor_cfg.body_names)
+-+    print("net contact forces: ",net_contact_forces[:,sensor_cfg.body_ids])
+-+    
+-+    max_forces = torch.max(torch.norm(net_contact_forces[:, sensor_cfg.body_ids], dim=-1), dim=1)[0]
+-+    print("max forces: ", max_forces)
+-+    
+-+    
+-+    # check if any contact force exceeds the threshold
+-+    return torch.any(
+-+        torch.max(torch.norm(net_contact_forces[:, sensor_cfg.body_ids], dim=-1), dim=1)[0] > threshold, dim=0
+-+    )
+-+    
+-+def detec_collision(env: ManagerBasedRLEnv, threshold: float, sensor_cfg: SceneEntityCfg) -> torch.Tensor:
+-+    """Terminate when the contact force on the sensor exceeds the force threshold."""
+-+    # extract the used quantities (to enable type-hinting)
+-+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+-+    net_contact_forces_history = contact_sensor.data.net_forces_w_history[:,:,sensor_cfg.body_ids] #四维数据 [环境数、历史轨迹、身体部位、xyz方向上的力]
+-+    force_magnitude = torch.norm(net_contact_forces_history,dim=-1)
+-+    print("force magnitude ", force_magnitude)
+-+    
+-+    collision_detected = (force_magnitude > threshold).any(dim=2)
+-+    print("collision detected ", collision_detected)
+-+    done = collision_detected.all(dim=1)
+-+    # check if any contact force exceeds the threshold
+-+    # done* (env.episode_length_buf>10)
+-+    return done* (env.episode_length_buf>10)
+-\ No newline at end of file
+-diff --git a/isaac_go2_ros2.py b/isaac_go2_ros2.py
+-index 8b27b67..a15cd70 100644
+---- a/isaac_go2_ros2.py
+-+++ b/isaac_go2_ros2.py
+-@@ -65,9 +65,6 @@ def run_simulator(cfg):
+-     system_input.subscribe_to_keyboard_events(
+-         omni.appwindow.get_default_app_window().get_keyboard(), go2_ctrl.sub_keyboard_event)
+-     
+--    # ROS2 Bridge
+--    # rclpy.init()
+--    # dm = go2_ros2_bridge.RobotDataManager(env, lidar_annotators, cameras)
+- 
+-     # Run simulation
+-     sim_step_dt = float(go2_env_cfg.sim.dt * go2_env_cfg.decimation)
+-@@ -92,24 +89,23 @@ def run_simulator(cfg):
+- 
+-             # step the environment
+-             obs, reward, done, _ = env.step(actions)
+-+            print("join pose ", obs.flatten()[12:24])
+-             # print("done: ",done)
+-             # print("pose command: ", env.env.command_manager.get_command("pose_command"))
+-             # print("vel command :", env.env.command_manager.get_command("base_vel_cmd"))
+-             # print("\nobs: ",obs.flatten()[:3])
+-             # print("reward: ", reward)
+- 
+--            # # ROS2 data
+--            # dm.pub_ros2_data()
+--            # rclpy.spin_once(dm)
+--
+-             # Camera follow
+-             if (cfg.camera_follow):
+-                 camera_follow(env)
+-                 
+-             if(done):
+--                print("robot is done\n")
+--                env.env.scene.reset()
+--                time.sleep(1)
+-+                print("\n\n robot is done\n\n\n")
+-+                env.reset()
+-+                # env.env.scene["contact_forces"].reset()
+-+                # env.env.scene.update(0.1)
+-+                
+-                 
+-             
+-             
+-diff --git a/test/contact.py b/test/contact.py
+-index d5d275c..50deaa6 100644
+---- a/test/contact.py
+-+++ b/test/contact.py
+-@@ -121,7 +121,7 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
+-             joint_pos += torch.rand_like(joint_pos) * 0.1
+-             scene["robot"].write_joint_state_to_sim(joint_pos, joint_vel)
+-             # clear internal buffers
+--            scene.reset()
+-+            # scene.reset()
+-             print("[INFO]: Resetting robot state...")
+-         # Apply default actions to the robot
+-         # -- generate actions/commands
+-diff --git a/test/learn_torch.py b/test/learn_torch.py
+-index 2ad5259..e184fb2 100644
+---- a/test/learn_torch.py
+-+++ b/test/learn_torch.py
+-@@ -1,18 +1,11 @@
+- import torch
+-+import omni.isaac.lab.utils.math as math_utils
+-+pose_range :dict = {"x": (-0.1, 0.0), "y": (0.5, 0.5), "yaw": (-0.3, -0.3)}
+-+range_list = [pose_range.get(key, (0.0, 0.0)) for key in ["x", "y", "z", "roll", "pitch", "yaw"]]
+-+ranges = torch.tensor(range_list,)
+-+rand_samples = math_utils.sample_uniform(ranges[:, 0], ranges[:, 1], (1, 6), device="cpu" )
+-+print(ranges)
+-+print(ranges[:,0])
+-+print(ranges[:,1])
+- 
+--# 创建张量
+--torch.manual_seed(10)
+--a = torch.rand(2, 2, 5, 3)
+--# b = torch.rand([1, 1, 5, 3])
+--b = a[:,:,[0,1,3,4]]
+--print(b)
+--print(b.shape)
+--print("-----c ----------------")
+--c = torch.norm(b,dim=-1)
+--print(c)
+--print(c.shape)
+--d = torch.max(c,dim=1)[0]
+--print("------d ---------------")
+--print(d)
+--# print(d.shape)
+--# print(b)
+-\ No newline at end of file
+-+print(rand_samples)
+-\ No newline at end of file
+\ No newline at end of file
+diff --git a/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/model_9999.pt b/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/model_9999.pt
+deleted file mode 100644
+index 3356989..0000000
+Binary files a/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/model_9999.pt and /dev/null differ
+diff --git a/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/params/agent.pkl b/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/params/agent.pkl
+deleted file mode 100644
+index 78c9853..0000000
+Binary files a/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/params/agent.pkl and /dev/null differ
+diff --git a/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/params/agent.yaml b/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/params/agent.yaml
+deleted file mode 100644
+index b231895..0000000
+--- a/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/params/agent.yaml
++++ /dev/null
+@@ -1,39 +0,0 @@
+-seed: 42
+-device: cuda:0
+-num_steps_per_env: 8
+-max_iterations: 10000
+-empirical_normalization: false
+-policy:
+-  class_name: ActorCritic
+-  init_noise_std: 0.5
+-  actor_hidden_dims:
+-  - 128
+-  - 128
+-  critic_hidden_dims:
+-  - 128
+-  - 128
+-  activation: elu
+-algorithm:
+-  class_name: PPO
+-  value_loss_coef: 1.0
+-  use_clipped_value_loss: true
+-  clip_param: 0.2
+-  entropy_coef: 0.005
+-  num_learning_epochs: 5
+-  num_mini_batches: 4
+-  learning_rate: 0.001
+-  schedule: adaptive
+-  gamma: 0.99
+-  lam: 0.95
+-  desired_kl: 0.01
+-  max_grad_norm: 1.0
+-clip_actions: null
+-save_interval: 50
+-experiment_name: anymal_c_navigation
+-run_name: ''
+-logger: tensorboard
+-neptune_project: isaaclab
+-wandb_project: isaaclab
+-resume: false
+-load_run: .*
+-load_checkpoint: model_.*.pt
+diff --git a/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/params/env.pkl b/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/params/env.pkl
+deleted file mode 100644
+index 1ba3c03..0000000
+Binary files a/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/params/env.pkl and /dev/null differ
+diff --git a/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/params/env.yaml b/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/params/env.yaml
+deleted file mode 100644
+index e425545..0000000
+--- a/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/params/env.yaml
++++ /dev/null
+@@ -1,737 +0,0 @@
+-viewer:
+-  eye: !!python/tuple
+-  - 7.5
+-  - 7.5
+-  - 7.5
+-  lookat: !!python/tuple
+-  - 0.0
+-  - 0.0
+-  - 0.0
+-  cam_prim_path: /OmniverseKit_Persp
+-  resolution: !!python/tuple
+-  - 1280
+-  - 720
+-  origin_type: world
+-  env_index: 0
+-  asset_name: null
+-  body_name: null
+-sim:
+-  physics_prim_path: /physicsScene
+-  device: cuda:0
+-  dt: 0.005
+-  render_interval: 4
+-  gravity: !!python/tuple
+-  - 0.0
+-  - 0.0
+-  - -9.81
+-  enable_scene_query_support: false
+-  use_fabric: true
+-  physx:
+-    solver_type: 1
+-    min_position_iteration_count: 1
+-    max_position_iteration_count: 255
+-    min_velocity_iteration_count: 0
+-    max_velocity_iteration_count: 255
+-    enable_ccd: false
+-    enable_stabilization: true
+-    enable_enhanced_determinism: false
+-    bounce_threshold_velocity: 0.5
+-    friction_offset_threshold: 0.04
+-    friction_correlation_distance: 0.025
+-    gpu_max_rigid_contact_count: 8388608
+-    gpu_max_rigid_patch_count: 163840
+-    gpu_found_lost_pairs_capacity: 2097152
+-    gpu_found_lost_aggregate_pairs_capacity: 33554432
+-    gpu_total_aggregate_pairs_capacity: 2097152
+-    gpu_collision_stack_size: 67108864
+-    gpu_heap_capacity: 67108864
+-    gpu_temp_buffer_capacity: 16777216
+-    gpu_max_num_partitions: 8
+-    gpu_max_soft_body_contacts: 1048576
+-    gpu_max_particle_contacts: 1048576
+-  physics_material:
+-    func: isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material
+-    static_friction: 0.5
+-    dynamic_friction: 0.5
+-    restitution: 0.0
+-    improve_patch_friction: true
+-    friction_combine_mode: average
+-    restitution_combine_mode: average
+-    compliant_contact_stiffness: 0.0
+-    compliant_contact_damping: 0.0
+-  render:
+-    enable_translucency: false
+-    enable_reflections: false
+-    enable_global_illumination: false
+-    antialiasing_mode: DLSS
+-    enable_dlssg: false
+-    enable_dl_denoiser: false
+-    dlss_mode: 0
+-    enable_direct_lighting: true
+-    samples_per_pixel: 1
+-    enable_shadows: true
+-    enable_ambient_occlusion: false
+-ui_window_class_type: isaaclab.envs.ui.manager_based_rl_env_window:ManagerBasedRLEnvWindow
+-seed: 42
+-decimation: 40
+-scene:
+-  num_envs: 3000
+-  env_spacing: 2.5
+-  lazy_sensor_update: true
+-  replicate_physics: true
+-  filter_collisions: true
+-  robot:
+-    class_type: isaaclab.assets.articulation.articulation:Articulation
+-    prim_path: /World/envs/env_.*/Robot
+-    spawn:
+-      func: isaaclab.sim.spawners.from_files.from_files:spawn_from_usd
+-      visible: true
+-      semantic_tags: null
+-      copy_from_source: true
+-      mass_props: null
+-      deformable_props: null
+-      rigid_props:
+-        rigid_body_enabled: null
+-        kinematic_enabled: null
+-        disable_gravity: false
+-        linear_damping: 0.0
+-        angular_damping: 0.0
+-        max_linear_velocity: 1000.0
+-        max_angular_velocity: 1000.0
+-        max_depenetration_velocity: 1.0
+-        max_contact_impulse: null
+-        enable_gyroscopic_forces: null
+-        retain_accelerations: false
+-        solver_position_iteration_count: null
+-        solver_velocity_iteration_count: null
+-        sleep_threshold: null
+-        stabilization_threshold: null
+-      collision_props: null
+-      activate_contact_sensors: true
+-      scale: null
+-      articulation_props:
+-        articulation_enabled: null
+-        enabled_self_collisions: true
+-        solver_position_iteration_count: 4
+-        solver_velocity_iteration_count: 0
+-        sleep_threshold: null
+-        stabilization_threshold: null
+-        fix_root_link: null
+-      fixed_tendons_props: null
+-      joint_drive_props: null
+-      visual_material_path: material
+-      visual_material: null
+-      usd_path: http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/4.5/Isaac/IsaacLab/Robots/ANYbotics/ANYmal-C/anymal_c.usd
+-      variants: null
+-    init_state:
+-      pos: !!python/tuple
+-      - 0.0
+-      - 0.0
+-      - 0.6
+-      rot: !!python/tuple
+-      - 1.0
+-      - 0.0
+-      - 0.0
+-      - 0.0
+-      lin_vel: !!python/tuple
+-      - 0.0
+-      - 0.0
+-      - 0.0
+-      ang_vel: !!python/tuple
+-      - 0.0
+-      - 0.0
+-      - 0.0
+-      joint_pos:
+-        .*HAA: 0.0
+-        .*F_HFE: 0.4
+-        .*H_HFE: -0.4
+-        .*F_KFE: -0.8
+-        .*H_KFE: 0.8
+-      joint_vel:
+-        .*: 0.0
+-    collision_group: 0
+-    debug_vis: false
+-    soft_joint_pos_limit_factor: 0.95
+-    actuators:
+-      legs:
+-        class_type: isaaclab.actuators.actuator_net:ActuatorNetLSTM
+-        joint_names_expr:
+-        - .*HAA
+-        - .*HFE
+-        - .*KFE
+-        effort_limit: 80.0
+-        velocity_limit: 7.5
+-        effort_limit_sim: null
+-        velocity_limit_sim: null
+-        stiffness: null
+-        damping: null
+-        armature: null
+-        friction: null
+-        saturation_effort: 120.0
+-        network_file: http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/4.5/Isaac/IsaacLab/ActuatorNets/ANYbotics/anydrive_3_lstm_jit.pt
+-  terrain2:
+-    class_type: isaaclab.terrains.terrain_importer:TerrainImporter
+-    collision_group: -1
+-    prim_path: /World/ground
+-    num_envs: 3000
+-    terrain_type: generator
+-    terrain_generator:
+-      seed: 0
+-      curriculum: false
+-      size: !!python/tuple
+-      - 50
+-      - 50
+-      border_width: 0.0
+-      border_height: 1.0
+-      num_rows: 1
+-      num_cols: 1
+-      color_scheme: height
+-      horizontal_scale: 0.1
+-      vertical_scale: 0.005
+-      slope_threshold: 0.75
+-      sub_terrains:
+-        t1:
+-          function: env.terrain:uniform_discrete_obstacles_terrain
+-          proportion: 1.0
+-          size: !!python/tuple
+-          - 50
+-          - 50
+-          flat_patch_sampling: null
+-          border_width: 5
+-          horizontal_scale: 0.1
+-          vertical_scale: 0.005
+-          slope_threshold: 0.75
+-          seed: 0
+-          obstacle_width_range: !!python/tuple
+-          - 0.5
+-          - 1.0
+-          obstacle_height_range: !!python/tuple
+-          - 1.0
+-          - 2.0
+-          num_obstacles: 100
+-          obstacles_distance: 2.0
+-          platform_width: 1.0
+-          avoid_positions:
+-          - - 0
+-            - 0
+-      difficulty_range: !!python/tuple
+-      - 0.0
+-      - 1.0
+-      use_cache: false
+-      cache_dir: /tmp/isaaclab/terrains
+-    usd_path: null
+-    env_spacing: 2.5
+-    visual_material: null
+-    physics_material:
+-      func: isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material
+-      static_friction: 0.5
+-      dynamic_friction: 0.5
+-      restitution: 0.0
+-      improve_patch_friction: true
+-      friction_combine_mode: average
+-      restitution_combine_mode: average
+-      compliant_contact_stiffness: 0.0
+-      compliant_contact_damping: 0.0
+-    max_init_terrain_level: null
+-    debug_vis: false
+-  height_scanner:
+-    class_type: isaaclab.sensors.ray_caster.ray_caster:RayCaster
+-    prim_path: /World/envs/env_.*/Robot/base
+-    update_period: 0.02
+-    history_length: 0
+-    debug_vis: true
+-    mesh_prim_paths:
+-    - /World/ground
+-    offset:
+-      pos: !!python/tuple
+-      - 0.0
+-      - 0.0
+-      - 20.0
+-      rot: !!python/tuple
+-      - 1.0
+-      - 0.0
+-      - 0.0
+-      - 0.0
+-    attach_yaw_only: true
+-    pattern_cfg:
+-      func: isaaclab.sensors.ray_caster.patterns.patterns:grid_pattern
+-      resolution: 0.1
+-      size:
+-      - 3.0
+-      - 2.0
+-      direction: !!python/tuple
+-      - 0.0
+-      - 0.0
+-      - -1.0
+-      ordering: xy
+-    max_distance: 1000000.0
+-    drift_range: !!python/tuple
+-    - 0.0
+-    - 0.0
+-    visualizer_cfg:
+-      prim_path: /Visuals/RayCaster
+-      markers:
+-        hit:
+-          func: isaaclab.sim.spawners.shapes.shapes:spawn_sphere
+-          visible: true
+-          semantic_tags: null
+-          copy_from_source: true
+-          mass_props: null
+-          rigid_props: null
+-          collision_props: null
+-          activate_contact_sensors: false
+-          visual_material_path: material
+-          visual_material:
+-            func: isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface
+-            diffuse_color: !!python/tuple
+-            - 1.0
+-            - 0.0
+-            - 0.0
+-            emissive_color: !!python/tuple
+-            - 0.0
+-            - 0.0
+-            - 0.0
+-            roughness: 0.5
+-            metallic: 0.0
+-            opacity: 1.0
+-          physics_material_path: material
+-          physics_material: null
+-          radius: 0.02
+-  contact_forces:
+-    class_type: isaaclab.sensors.contact_sensor.contact_sensor:ContactSensor
+-    prim_path: /World/envs/env_.*/Robot/.*
+-    update_period: 0.005
+-    history_length: 3
+-    debug_vis: false
+-    track_pose: false
+-    track_air_time: true
+-    force_threshold: 1.0
+-    filter_prim_paths_expr: []
+-    visualizer_cfg:
+-      prim_path: /Visuals/ContactSensor
+-      markers:
+-        contact:
+-          func: isaaclab.sim.spawners.shapes.shapes:spawn_sphere
+-          visible: true
+-          semantic_tags: null
+-          copy_from_source: true
+-          mass_props: null
+-          rigid_props: null
+-          collision_props: null
+-          activate_contact_sensors: false
+-          visual_material_path: material
+-          visual_material:
+-            func: isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface
+-            diffuse_color: !!python/tuple
+-            - 1.0
+-            - 0.0
+-            - 0.0
+-            emissive_color: !!python/tuple
+-            - 0.0
+-            - 0.0
+-            - 0.0
+-            roughness: 0.5
+-            metallic: 0.0
+-            opacity: 1.0
+-          physics_material_path: material
+-          physics_material: null
+-          radius: 0.02
+-        no_contact:
+-          func: isaaclab.sim.spawners.shapes.shapes:spawn_sphere
+-          visible: false
+-          semantic_tags: null
+-          copy_from_source: true
+-          mass_props: null
+-          rigid_props: null
+-          collision_props: null
+-          activate_contact_sensors: false
+-          visual_material_path: material
+-          visual_material:
+-            func: isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface
+-            diffuse_color: !!python/tuple
+-            - 0.0
+-            - 1.0
+-            - 0.0
+-            emissive_color: !!python/tuple
+-            - 0.0
+-            - 0.0
+-            - 0.0
+-            roughness: 0.5
+-            metallic: 0.0
+-            opacity: 1.0
+-          physics_material_path: material
+-          physics_material: null
+-          radius: 0.02
+-  sky_light:
+-    class_type: null
+-    prim_path: /World/skyLight
+-    spawn:
+-      func: isaaclab.sim.spawners.lights.lights:spawn_light
+-      visible: true
+-      semantic_tags: null
+-      copy_from_source: true
+-      prim_type: DomeLight
+-      color: !!python/tuple
+-      - 1.0
+-      - 1.0
+-      - 1.0
+-      enable_color_temperature: false
+-      color_temperature: 6500.0
+-      normalize: false
+-      exposure: 0.0
+-      intensity: 750.0
+-      texture_file: http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/4.5/Isaac/Materials/Textures/Skies/PolyHaven/kloofendal_43d_clear_puresky_4k.hdr
+-      texture_format: automatic
+-      visible_in_primary_ray: true
+-    init_state:
+-      pos: !!python/tuple
+-      - 0.0
+-      - 0.0
+-      - 0.0
+-      rot: !!python/tuple
+-      - 1.0
+-      - 0.0
+-      - 0.0
+-      - 0.0
+-    collision_group: 0
+-    debug_vis: false
+-recorders:
+-  dataset_file_handler_class_type: isaaclab.utils.datasets.hdf5_dataset_file_handler:HDF5DatasetFileHandler
+-  dataset_export_dir_path: /tmp/isaaclab/logs
+-  dataset_filename: dataset
+-  dataset_export_mode:
+-    _value_: 1
+-    _name_: EXPORT_ALL
+-  export_in_record_pre_reset: true
+-observations:
+-  policy:
+-    concatenate_terms: true
+-    enable_corruption: false
+-    history_length: null
+-    flatten_history_dim: true
+-    base_lin_vel:
+-      func: isaaclab.envs.mdp.observations:base_lin_vel
+-      params: {}
+-      modifiers: null
+-      noise: null
+-      clip: null
+-      scale: null
+-      history_length: 0
+-      flatten_history_dim: true
+-    projected_gravity:
+-      func: isaaclab.envs.mdp.observations:projected_gravity
+-      params: {}
+-      modifiers: null
+-      noise: null
+-      clip: null
+-      scale: null
+-      history_length: 0
+-      flatten_history_dim: true
+-    pose_command:
+-      func: isaaclab.envs.mdp.observations:generated_commands
+-      params:
+-        command_name: pose_command
+-      modifiers: null
+-      noise: null
+-      clip: null
+-      scale: null
+-      history_length: 0
+-      flatten_history_dim: true
+-    height_scan:
+-      func: isaaclab.envs.mdp.observations:height_scan
+-      params:
+-        sensor_cfg:
+-          name: height_scanner
+-          joint_names: null
+-          joint_ids: !!python/object/apply:builtins.slice
+-          - null
+-          - null
+-          - null
+-          fixed_tendon_names: null
+-          fixed_tendon_ids: !!python/object/apply:builtins.slice
+-          - null
+-          - null
+-          - null
+-          body_names: null
+-          body_ids: !!python/object/apply:builtins.slice
+-          - null
+-          - null
+-          - null
+-          object_collection_names: null
+-          object_collection_ids: !!python/object/apply:builtins.slice
+-          - null
+-          - null
+-          - null
+-          preserve_order: false
+-      modifiers: null
+-      noise: null
+-      clip: !!python/tuple
+-      - -1.0
+-      - 10.0
+-      scale: null
+-      history_length: 0
+-      flatten_history_dim: true
+-actions:
+-  pre_trained_policy_action:
+-    class_type: isaaclab_tasks.manager_based.navigation.mdp.pre_trained_policy_action:PreTrainedPolicyAction
+-    asset_name: robot
+-    debug_vis: true
+-    clip: null
+-    policy_path: http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/4.5/Isaac/IsaacLab/Policies/ANYmal-C/Blind/policy.pt
+-    low_level_decimation: 4
+-    low_level_actions:
+-      class_type: isaaclab.envs.mdp.actions.joint_actions:JointPositionAction
+-      asset_name: robot
+-      debug_vis: false
+-      clip: null
+-      joint_names:
+-      - .*
+-      scale: 0.5
+-      offset: 0.0
+-      preserve_order: false
+-      use_default_offset: true
+-    low_level_observations:
+-      concatenate_terms: true
+-      enable_corruption: true
+-      history_length: null
+-      flatten_history_dim: true
+-      base_lin_vel:
+-        func: isaaclab.envs.mdp.observations:base_lin_vel
+-        params: {}
+-        modifiers: null
+-        noise:
+-          func: isaaclab.utils.noise.noise_model:uniform_noise
+-          operation: add
+-          n_min: -0.1
+-          n_max: 0.1
+-        clip: null
+-        scale: null
+-        history_length: 0
+-        flatten_history_dim: true
+-      base_ang_vel:
+-        func: isaaclab.envs.mdp.observations:base_ang_vel
+-        params: {}
+-        modifiers: null
+-        noise:
+-          func: isaaclab.utils.noise.noise_model:uniform_noise
+-          operation: add
+-          n_min: -0.2
+-          n_max: 0.2
+-        clip: null
+-        scale: null
+-        history_length: 0
+-        flatten_history_dim: true
+-      projected_gravity:
+-        func: isaaclab.envs.mdp.observations:projected_gravity
+-        params: {}
+-        modifiers: null
+-        noise:
+-          func: isaaclab.utils.noise.noise_model:uniform_noise
+-          operation: add
+-          n_min: -0.05
+-          n_max: 0.05
+-        clip: null
+-        scale: null
+-        history_length: 0
+-        flatten_history_dim: true
+-      velocity_commands:
+-        func: isaaclab.envs.mdp.observations:generated_commands
+-        params:
+-          command_name: base_velocity
+-        modifiers: null
+-        noise: null
+-        clip: null
+-        scale: null
+-        history_length: 0
+-        flatten_history_dim: true
+-      joint_pos:
+-        func: isaaclab.envs.mdp.observations:joint_pos_rel
+-        params: {}
+-        modifiers: null
+-        noise:
+-          func: isaaclab.utils.noise.noise_model:uniform_noise
+-          operation: add
+-          n_min: -0.01
+-          n_max: 0.01
+-        clip: null
+-        scale: null
+-        history_length: 0
+-        flatten_history_dim: true
+-      joint_vel:
+-        func: isaaclab.envs.mdp.observations:joint_vel_rel
+-        params: {}
+-        modifiers: null
+-        noise:
+-          func: isaaclab.utils.noise.noise_model:uniform_noise
+-          operation: add
+-          n_min: -1.5
+-          n_max: 1.5
+-        clip: null
+-        scale: null
+-        history_length: 0
+-        flatten_history_dim: true
+-      actions:
+-        func: isaaclab.envs.mdp.observations:last_action
+-        params: {}
+-        modifiers: null
+-        noise: null
+-        clip: null
+-        scale: null
+-        history_length: 0
+-        flatten_history_dim: true
+-      height_scan: null
+-events:
+-  reset_base:
+-    func: isaaclab.envs.mdp.events:reset_root_state_uniform
+-    params:
+-      pose_range:
+-        x: !!python/tuple
+-        - -0.0
+-        - 0.0
+-        y: !!python/tuple
+-        - -0.0
+-        - 0.0
+-        z: !!python/tuple
+-        - 0.05
+-        - 0.1
+-        yaw: !!python/tuple
+-        - -3.14
+-        - 3.14
+-      velocity_range:
+-        x: !!python/tuple
+-        - -0.0
+-        - 0.0
+-        y: !!python/tuple
+-        - -0.0
+-        - 0.0
+-        z: !!python/tuple
+-        - -0.0
+-        - 0.0
+-        roll: !!python/tuple
+-        - -0.0
+-        - 0.0
+-        pitch: !!python/tuple
+-        - -0.0
+-        - 0.0
+-        yaw: !!python/tuple
+-        - -0.0
+-        - 0.0
+-    mode: reset
+-    interval_range_s: null
+-    is_global_time: false
+-    min_step_count_between_reset: 0
+-rerender_on_reset: false
+-wait_for_textures: true
+-is_finite_horizon: false
+-episode_length_s: 8.0
+-rewards:
+-  termination_penalty:
+-    func: isaaclab.envs.mdp.rewards:is_terminated
+-    params: {}
+-    weight: -400.0
+-  position_tracking:
+-    func: isaaclab_tasks.manager_based.navigation.mdp.rewards:position_command_error_tanh
+-    params:
+-      std: 2.0
+-      command_name: pose_command
+-    weight: 0.5
+-  position_tracking_fine_grained:
+-    func: isaaclab_tasks.manager_based.navigation.mdp.rewards:position_command_error_tanh
+-    params:
+-      std: 0.2
+-      command_name: pose_command
+-    weight: 0.5
+-  orientation_tracking:
+-    func: isaaclab_tasks.manager_based.navigation.mdp.rewards:heading_command_error_abs
+-    params:
+-      command_name: pose_command
+-    weight: -0.2
+-terminations:
+-  time_out:
+-    func: isaaclab.envs.mdp.terminations:time_out
+-    params: {}
+-    time_out: true
+-  base_contact:
+-    func: isaaclab.envs.mdp.terminations:illegal_contact
+-    params:
+-      sensor_cfg:
+-        name: contact_forces
+-        joint_names: null
+-        joint_ids: !!python/object/apply:builtins.slice
+-        - null
+-        - null
+-        - null
+-        fixed_tendon_names: null
+-        fixed_tendon_ids: !!python/object/apply:builtins.slice
+-        - null
+-        - null
+-        - null
+-        body_names: base
+-        body_ids: !!python/object/apply:builtins.slice
+-        - null
+-        - null
+-        - null
+-        object_collection_names: null
+-        object_collection_ids: !!python/object/apply:builtins.slice
+-        - null
+-        - null
+-        - null
+-        preserve_order: false
+-      threshold: 1.0
+-    time_out: false
+-curriculum: null
+-commands:
+-  pose_command:
+-    class_type: isaaclab.envs.mdp.commands.pose_2d_command:UniformPose2dCommand
+-    resampling_time_range: !!python/tuple
+-    - 8.0
+-    - 8.0
+-    debug_vis: true
+-    asset_name: robot
+-    simple_heading: false
+-    ranges:
+-      pos_x: !!python/tuple
+-      - -5.0
+-      - 5.0
+-      pos_y: !!python/tuple
+-      - -5.0
+-      - 5.0
+-      heading: !!python/tuple
+-      - -3.141592653589793
+-      - 3.141592653589793
+-    goal_pose_visualizer_cfg:
+-      prim_path: /Visuals/Command/pose_goal
+-      markers:
+-        arrow:
+-          func: isaaclab.sim.spawners.from_files.from_files:spawn_from_usd
+-          visible: true
+-          semantic_tags: null
+-          copy_from_source: true
+-          mass_props: null
+-          deformable_props: null
+-          rigid_props: null
+-          collision_props: null
+-          activate_contact_sensors: false
+-          scale: !!python/tuple
+-          - 0.2
+-          - 0.2
+-          - 0.8
+-          articulation_props: null
+-          fixed_tendons_props: null
+-          joint_drive_props: null
+-          visual_material_path: material
+-          visual_material:
+-            func: isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface
+-            diffuse_color: !!python/tuple
+-            - 0.0
+-            - 1.0
+-            - 0.0
+-            emissive_color: !!python/tuple
+-            - 0.0
+-            - 0.0
+-            - 0.0
+-            roughness: 0.5
+-            metallic: 0.0
+-            opacity: 1.0
+-          usd_path: http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/4.5/Isaac/Props/UIElements/arrow_x.usd
+-          variants: null
+diff --git a/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/videos/play/rl-video-step-0.meta.json b/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/videos/play/rl-video-step-0.meta.json
+deleted file mode 100644
+index 03b3865..0000000
+--- a/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/videos/play/rl-video-step-0.meta.json
++++ /dev/null
+@@ -1 +0,0 @@
+-{"step_id": 0, "episode_id": 0, "content_type": "video/mp4"}
+\ No newline at end of file
+diff --git a/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/videos/play/rl-video-step-0.mp4 b/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/videos/play/rl-video-step-0.mp4
+deleted file mode 100644
+index 871ea6c..0000000
+Binary files a/rsl_rl/logs/rsl_rl/anymal_c_navigation/2025-03-17_18-45-00/videos/play/rl-video-step-0.mp4 and /dev/null differ
+diff --git a/rsl_rl/play.py b/rsl_rl/play.py
+deleted file mode 100644
+index 06e3148..0000000
+--- a/rsl_rl/play.py
++++ /dev/null
+@@ -1,174 +0,0 @@
+-# Copyright (c) 2022-2025, The Isaac Lab Project Developers.
+-# All rights reserved.
+-#
+-# SPDX-License-Identifier: BSD-3-Clause
+-
+-"""Script to play a checkpoint if an RL agent from RSL-RL."""
+-
+-"""Launch Isaac Sim Simulator first."""
+-
+-import argparse
+-
+-from isaaclab.app import AppLauncher
+-import numpy as np
+-# local imports
+-import cli_args  # isort: skip
+-
+-# add argparse arguments
+-parser = argparse.ArgumentParser(description="Train an RL agent with RSL-RL.")
+-parser.add_argument("--video", action="store_true", default=False, help="Record videos during training.")
+-parser.add_argument("--video_length", type=int, default=200, help="Length of the recorded video (in steps).")
+-parser.add_argument(
+-    "--disable_fabric", action="store_true", default=False, help="Disable fabric and use USD I/O operations."
+-)
+-parser.add_argument("--num_envs", type=int, default=None, help="Number of environments to simulate.")
+-parser.add_argument("--task", type=str, default=None, help="Name of the task.")
+-parser.add_argument(
+-    "--use_pretrained_checkpoint",
+-    action="store_true",
+-    help="Use the pre-trained checkpoint from Nucleus.",
+-)
+-parser.add_argument("--real-time", action="store_true", default=False, help="Run in real-time, if possible.")
+-# append RSL-RL cli arguments
+-cli_args.add_rsl_rl_args(parser)
+-# append AppLauncher cli args
+-AppLauncher.add_app_launcher_args(parser)
+-args_cli = parser.parse_args()
+-# always enable cameras to record video
+-if args_cli.video:
+-    args_cli.enable_cameras = True
+-
+-# launch omniverse app
+-app_launcher = AppLauncher(args_cli)
+-simulation_app = app_launcher.app
+-
+-"""Rest everything follows."""
+-
+-import gymnasium as gym
+-import os
+-import time
+-import torch
+-import sys
+-from pathlib import Path
+-
+-from rsl_rl.runners import OnPolicyRunner
+-
+-from isaaclab.envs import DirectMARLEnv, multi_agent_to_single_agent
+-from isaaclab.utils.assets import retrieve_file_path
+-from isaaclab.utils.dict import print_dict
+-from isaaclab.utils.pretrained_checkpoint import get_published_pretrained_checkpoint
+-
+-from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlVecEnvWrapper, export_policy_as_jit, export_policy_as_onnx
+-
+-ROOT_DIR = Path(__file__).parent.parent
+-sys.path.append(str(ROOT_DIR))
+-
+-import navigation
+-import isaaclab_tasks  # noqa: F401
+-from isaaclab_tasks.utils import get_checkpoint_path, parse_env_cfg
+-
+-torch.set_printoptions(precision=2, sci_mode=False)
+-def main():
+-    """Play with RSL-RL agent."""
+-    # parse configuration
+-    env_cfg = parse_env_cfg(
+-        args_cli.task, device=args_cli.device, num_envs=args_cli.num_envs, use_fabric=not args_cli.disable_fabric
+-    )
+-    agent_cfg: RslRlOnPolicyRunnerCfg = cli_args.parse_rsl_rl_cfg(args_cli.task, args_cli)
+-
+-    # specify directory for logging experiments
+-    log_root_path = os.path.join("logs", "rsl_rl", agent_cfg.experiment_name)
+-    log_root_path = os.path.abspath(log_root_path)
+-    print(f"[INFO] Loading experiment from directory: {log_root_path}")
+-    if args_cli.use_pretrained_checkpoint:
+-        resume_path = get_published_pretrained_checkpoint("rsl_rl", args_cli.task)
+-        if not resume_path:
+-            print("[INFO] Unfortunately a pre-trained checkpoint is currently unavailable for this task.")
+-            return
+-    elif args_cli.checkpoint:
+-        resume_path = retrieve_file_path(args_cli.checkpoint)
+-    else:
+-        resume_path = get_checkpoint_path(log_root_path, agent_cfg.load_run, agent_cfg.load_checkpoint)
+-
+-    log_dir = os.path.dirname(resume_path)
+-
+-    # create isaac environment
+-    env = gym.make(args_cli.task, cfg=env_cfg, render_mode="rgb_array" if args_cli.video else None)
+-
+-    # convert to single-agent instance if required by the RL algorithm
+-    if isinstance(env.unwrapped, DirectMARLEnv):
+-        env = multi_agent_to_single_agent(env)
+-
+-    # wrap for video recording
+-    if args_cli.video:
+-        video_kwargs = {
+-            "video_folder": os.path.join(log_dir, "videos", "play"),
+-            "step_trigger": lambda step: step == 0,
+-            "video_length": args_cli.video_length,
+-            "disable_logger": True,
+-        }
+-        print("[INFO] Recording videos during training.")
+-        print_dict(video_kwargs, nesting=4)
+-        env = gym.wrappers.RecordVideo(env, **video_kwargs)
+-
+-    # wrap around environment for rsl-rl
+-    env = RslRlVecEnvWrapper(env)
+-
+-    print(f"[INFO]: Loading model checkpoint from: {resume_path}")
+-    # load previously trained model
+-    ppo_runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=None, device=agent_cfg.device)
+-    ppo_runner.load(resume_path)
+-
+-    # obtain the trained policy for inference
+-    policy = ppo_runner.get_inference_policy(device=env.unwrapped.device)
+-
+-    # export policy to onnx/jit
+-    export_model_dir = os.path.join(os.path.dirname(resume_path), "exported")
+-    export_policy_as_jit(
+-        ppo_runner.alg.actor_critic, ppo_runner.obs_normalizer, path=export_model_dir, filename="policy.pt"
+-    )
+-    export_policy_as_onnx(
+-        ppo_runner.alg.actor_critic, normalizer=ppo_runner.obs_normalizer, path=export_model_dir, filename="policy.onnx"
+-    )
+-
+-    dt = env.unwrapped.physics_dt
+-
+-    # reset environment
+-    obs, _ = env.get_observations()
+-    timestep = 0
+-    # simulate environment
+-    while simulation_app.is_running():
+-        start_time = time.time()
+-        # run everything in inference mode
+-        with torch.inference_mode():
+-            # agent stepping
+-            # print("obs ", obs[0])
+-            # print("obs ", obs.shape())
+-            actions = policy(obs)
+-            # env stepping
+-            # print('action ', actions)
+-            with open("obs.txt", "w") as f:
+-                np.savetxt(f, obs[0].cpu().numpy(), fmt="%.5f", delimiter=" ")
+-                f.write("actions \n")
+-                np.savetxt(f, actions[0].cpu().numpy(), fmt="%.5f", delimiter=" ") 
+-            obs, _, _, _ = env.step(actions)
+-        if args_cli.video:
+-            timestep += 1
+-            # Exit the play loop after recording one video
+-            if timestep == args_cli.video_length:
+-                break
+-
+-        # time delay for real-time evaluation
+-        sleep_time = dt - (time.time() - start_time)
+-        if args_cli.real_time and sleep_time > 0:
+-            time.sleep(sleep_time)
+-
+-    # close the simulator
+-    env.close()
+-
+-
+-if __name__ == "__main__":
+-    # run the main function
+-    main()
+-    # close sim app
+-    simulation_app.close()
+diff --git a/rsl_rl/train.py b/rsl_rl/train.py
+deleted file mode 100644
+index 124e071..0000000
+--- a/rsl_rl/train.py
++++ /dev/null
+@@ -1,171 +0,0 @@
+-# Copyright (c) 2022-2025, The Isaac Lab Project Developers.
+-# All rights reserved.
+-#
+-# SPDX-License-Identifier: BSD-3-Clause
+-
+-"""Script to train RL agent with RSL-RL."""
+-
+-"""Launch Isaac Sim Simulator first."""
+-
+-import argparse
+-import sys
+-from pathlib import Path
+-
+-# 添加项目根目录到 Python 路径
+-ROOT_DIR = Path(__file__).parent.parent
+-sys.path.append(str(ROOT_DIR))
+-
+-import navigation
+-
+-from isaaclab.app import AppLauncher
+-
+-# local imports
+-import cli_args  # isort: skip
+-
+-
+-# add argparse arguments
+-parser = argparse.ArgumentParser(description="Train an RL agent with RSL-RL.")
+-parser.add_argument("--video", action="store_true", default=False, help="Record videos during training.")
+-parser.add_argument("--video_length", type=int, default=200, help="Length of the recorded video (in steps).")
+-parser.add_argument("--video_interval", type=int, default=2000, help="Interval between video recordings (in steps).")
+-parser.add_argument("--num_envs", type=int, default=None, help="Number of environments to simulate.")
+-parser.add_argument("--task", type=str, default=None, help="Name of the task.")
+-parser.add_argument("--seed", type=int, default=None, help="Seed used for the environment")
+-parser.add_argument("--max_iterations", type=int, default=None, help="RL Policy training iterations.")
+-# append RSL-RL cli arguments
+-cli_args.add_rsl_rl_args(parser)
+-# append AppLauncher cli args
+-AppLauncher.add_app_launcher_args(parser)
+-args_cli, hydra_args = parser.parse_known_args()
+-
+-# always enable cameras to record video
+-if args_cli.video:
+-    args_cli.enable_cameras = True
+-
+-# clear out sys.argv for Hydra
+-sys.argv = [sys.argv[0]] + hydra_args
+-
+-# launch omniverse app
+-app_launcher = AppLauncher(args_cli)
+-simulation_app = app_launcher.app
+-
+-"""Rest everything follows."""
+-
+-import gymnasium as gym # type: ignore
+-import os
+-import torch
+-from datetime import datetime
+-
+-from rsl_rl.runners import OnPolicyRunner
+-
+-from isaaclab.envs import (
+-    DirectMARLEnv,
+-    DirectMARLEnvCfg,
+-    DirectRLEnvCfg,
+-    ManagerBasedRLEnvCfg,
+-    multi_agent_to_single_agent,
+-)
+-from isaaclab.utils.dict import print_dict
+-from isaaclab.utils.io import dump_pickle, dump_yaml
+-
+-from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlVecEnvWrapper
+-
+-# import isaaclab_tasks  # noqa: F401
+-
+-from isaaclab_tasks.utils import get_checkpoint_path # type: ignore
+-from isaaclab_tasks.utils.hydra import hydra_task_config
+-
+-# PLACEHOLDER: Extension template (do not remove this comment)
+-
+-torch.backends.cuda.matmul.allow_tf32 = True
+-torch.backends.cudnn.allow_tf32 = True
+-torch.backends.cudnn.deterministic = False
+-torch.backends.cudnn.benchmark = False
+-
+-
+-@hydra_task_config(args_cli.task, "rsl_rl_cfg_entry_point")
+-def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agent_cfg: RslRlOnPolicyRunnerCfg):
+-    """Train with RSL-RL agent."""
+-    # override configurations with non-hydra CLI arguments
+-    agent_cfg = cli_args.update_rsl_rl_cfg(agent_cfg, args_cli)
+-    env_cfg.scene.num_envs = args_cli.num_envs if args_cli.num_envs is not None else env_cfg.scene.num_envs
+-    agent_cfg.max_iterations = (
+-        args_cli.max_iterations if args_cli.max_iterations is not None else agent_cfg.max_iterations
+-    )
+-
+-    # set the environment seed
+-    # note: certain randomizations occur in the environment initialization so we set the seed here
+-    env_cfg.seed = agent_cfg.seed
+-    env_cfg.sim.device = args_cli.device if args_cli.device is not None else env_cfg.sim.device
+-
+-    # specify directory for logging experiments
+-    log_root_path = os.path.join("logs", "rsl_rl", agent_cfg.experiment_name)
+-    log_root_path = os.path.abspath(log_root_path)
+-    print(f"[INFO] Logging experiment in directory: {log_root_path}")
+-    # specify directory for logging runs: {time-stamp}_{run_name}
+-    log_dir = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+-    # This way, the Ray Tune workflow can extract experiment name.
+-    print(f"Exact experiment name requested from command line: {log_dir}")
+-    if agent_cfg.run_name:
+-        log_dir += f"_{agent_cfg.run_name}"
+-    log_dir = os.path.join(log_root_path, log_dir)
+-
+-    # create isaac environment
+-    env = gym.make(args_cli.task, cfg=env_cfg, render_mode="rgb_array" if args_cli.video else None)
+-
+-    # convert to single-agent instance if required by the RL algorithm
+-    if isinstance(env.unwrapped, DirectMARLEnv):
+-        env = multi_agent_to_single_agent(env)
+-
+-    # save resume path before creating a new log_dir
+-    # if agent_cfg.resume:
+-    #     resume_path = get_checkpoint_path(log_root_path, agent_cfg.load_run, agent_cfg.load_checkpoint)
+-
+-    if agent_cfg.resume:
+-        # resume_path = get_checkpoint_path(log_root_path, agent_cfg.load_run, agent_cfg.load_checkpoint)
+-        resume_path = args_cli.checkpoint
+-        print("resume path ",resume_path)
+-        
+-    # wrap for video recording
+-    if args_cli.video:
+-        video_kwargs = {
+-            "video_folder": os.path.join(log_dir, "videos", "train"),
+-            "step_trigger": lambda step: step % args_cli.video_interval == 0,
+-            "video_length": args_cli.video_length,
+-            "disable_logger": True,
+-        }
+-        print("[INFO] Recording videos during training.")
+-        print_dict(video_kwargs, nesting=4)
+-        env = gym.wrappers.RecordVideo(env, **video_kwargs)
+-
+-    # wrap around environment for rsl-rl
+-    env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
+-
+-    # create runner from rsl-rl
+-    runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
+-    # write git state to logs
+-    runner.add_git_repo_to_log(__file__)
+-    # load the checkpoint
+-    if agent_cfg.resume:
+-        print(f"[INFO]: Loading model checkpoint from: {resume_path}")
+-        # load previously trained model
+-        runner.load(resume_path)
+-
+-    # dump the configuration into log-directory
+-    dump_yaml(os.path.join(log_dir, "params", "env.yaml"), env_cfg)
+-    dump_yaml(os.path.join(log_dir, "params", "agent.yaml"), agent_cfg)
+-    dump_pickle(os.path.join(log_dir, "params", "env.pkl"), env_cfg)
+-    dump_pickle(os.path.join(log_dir, "params", "agent.pkl"), agent_cfg)
+-
+-    # run training
+-    runner.learn(num_learning_iterations=agent_cfg.max_iterations, init_at_random_ep_len=True)
+-
+-    # close the simulator
+-    env.close()
+-
+-
+-if __name__ == "__main__":
+-    # run the main function
+-    main()
+-    # close sim app
+-    simulation_app.close()
+diff --git a/test/decorator_02.py b/test/decorator_02.py
+index 2083a6f..e69de29 100644
+--- a/test/decorator_02.py
++++ b/test/decorator_02.py
+@@ -1,22 +0,0 @@
+-import time
+-import functools
+-
+-def time_factory(a):
+-    def timer(func):
+-        @functools.wraps(func)  # 保持原函数元信息
+-        def wrapper(*args, **kwargs):
+-            start_time = time.perf_counter()
+-            print("start ",a)
+-            result = func(*args, **kwargs)
+-            elapsed = time.perf_counter() - start_time
+-            print(f"{func.__name__} 执行耗时: {elapsed:.4f}秒")
+-            return result
+-        return wrapper
+-    return timer
+-# 使用装饰器
+-@time_factory("s")
+-def calculate_sum(n):
+-    return sum(range(n+1))
+-
+-calculate_sum(1000000)
+-# 输出：calculate_sum 执行耗时: 0.0382秒
+\ No newline at end of file
+diff --git a/test/learn_gym.py b/test/learn_gym.py
+index 703e0e5..35563a2 100644
+--- a/test/learn_gym.py
++++ b/test/learn_gym.py
+@@ -1,88 +1,112 @@
+-from typing import Optional
++import gym
++from gym import spaces
+ import numpy as np
+-import gymnasium as gym
+-
+-
+-class GridWorldEnv(gym.Env):
+-
+-    def __init__(self, size: int = 5):
+-        # The size of the square grid
+-        self.size = size
+-
+-        # Define the agent and target location; randomly chosen in `reset` and updated in `step`
+-        self._agent_location = np.array([-1, -1], dtype=np.int32)
+-        self._target_location = np.array([-1, -1], dtype=np.int32)
+-
+-        # Observations are dictionaries with the agent's and the target's location.
+-        # Each location is encoded as an element of {0, ..., `size`-1}^2
+-        self.observation_space = gym.spaces.Dict(
+-            {
+-                "agent": gym.spaces.Box(0, size - 1, shape=(2,), dtype=int),
+-                "target": gym.spaces.Box(0, size - 1, shape=(2,), dtype=int),
+-            }
+-        )
+-
+-        # We have 4 actions, corresponding to "right", "up", "left", "down"
+-        self.action_space = gym.spaces.Discrete(4)
+-        # Dictionary maps the abstract actions to the directions on the grid
+-        self._action_to_direction = {
+-            0: np.array([1, 0]),  # right
+-            1: np.array([0, 1]),  # up
+-            2: np.array([-1, 0]),  # left
+-            3: np.array([0, -1]),  # down
+-        }
+-        
+-    def _get_obs(self):
+-        return {"agent": self._agent_location, "target": self._target_location}
+-    
+-    def _get_info(self):
+-        return {
+-            "distance": np.linalg.norm(
+-                self._agent_location - self._target_location, ord=1
+-            )
+-        }
+-    
+-    def reset(self, seed: Optional[int] = None, options: Optional[dict] = None):
+-        # We need the following line to seed self.np_random
+-        super().reset(seed=seed)
+-
+-        # Choose the agent's location uniformly at random
+-        self._agent_location = self.np_random.integers(0, self.size, size=2, dtype=int)
+-
+-        # We will sample the target's location randomly until it does not coincide with the agent's location
+-        self._target_location = self._agent_location
+-        while np.array_equal(self._target_location, self._agent_location):
+-            self._target_location = self.np_random.integers(
+-                0, self.size, size=2, dtype=int
+-            )
+-
+-        observation = self._get_obs()
+-        info = self._get_info()
+-
+-        return observation, info
+-    
++import torch
++from abc import ABC, abstractmethod
++
++
++# ===================== 底层环境 =====================
++class CounterEnv(gym.Env):
++    """简单计数环境"""
++    def __init__(self):
++        super().__init__()
++        self.action_space = spaces.Discrete(2)  # 0:+1, 1:-1
++        self.observation_space = spaces.Box(low=-100, high=100, shape=(1,), dtype=np.int32)
++        self.state = 0
++        self.episode_length_buf = 0  # 底层 buffer
++
++    def reset(self):
++        self.state = 0
++        self.episode_length_buf = 0
++        return np.array([self.state], dtype=np.int32)
++
+     def step(self, action):
+-        # Map the action (element of {0,1,2,3}) to the direction we walk in
+-        direction = self._action_to_direction[action]
+-        # We use `np.clip` to make sure we don't leave the grid bounds
+-        self._agent_location = np.clip(
+-            self._agent_location + direction, 0, self.size - 1
+-        )
+-
+-        # An environment is completed if and only if the agent has reached the target
+-        terminated = np.array_equal(self._agent_location, self._target_location)
+-        truncated = False
+-        reward = 1 if terminated else 0  # the agent is only reached at the end of the episode
+-        observation = self._get_obs()
+-        info = self._get_info()
+-
+-        return observation, reward, terminated, truncated, info
+-
+-gym.register(
+-    id="gymnasium_env/GridWorld-v0",
+-    entry_point=GridWorldEnv,
+-)
+-
+-gym.make("gymnasium_env/GridWorld-v0")
+-gym.make("gymnasium_env/GridWorld-v0", max_episode_steps=100)
+-env = gym.make("gymnasium_env/GridWorld-v0", size=10)
+\ No newline at end of file
++        self.state += 1 if action == 0 else -1
++        self.episode_length_buf += 1
++        reward = -1
++        done = self.state == 10
++        if done:
++            reward = 10
++        return np.array([self.state], dtype=np.int32), reward, done, {}
++
++    def render(self, mode="human"):
++        print(f"State: {self.state}, Step buffer: {self.episode_length_buf}")
++
++
++# ===================== VecEnv 抽象基类 =====================
++class VecEnv(ABC):
++    def __init__(self):
++        self.num_envs = 0
++
++    @abstractmethod
++    def reset(self):
++        pass
++
++    @abstractmethod
++    def step_async(self, actions):
++        pass
++
++    @abstractmethod
++    def step_wait(self):
++        pass
++
++    def step(self, actions):
++        self.step_async(actions)
++        return self.step_wait()
++
++
++# ===================== RSL-RL 风格 VecEnv 封装 =====================
++class RslRlVecEnvWrapper(VecEnv):
++    """封装多个 CounterEnv，支持 episode_length_buf"""
++    def __init__(self, env_fns):
++        super().__init__()
++        self.envs = [fn() for fn in env_fns]
++        self.num_envs = len(self.envs)
++        self._actions = None
++
++    @property
++    def episode_length_buf(self):
++        # 返回所有 env 的 buffer
++        return np.array([env.episode_length_buf for env in self.envs])
++
++    @episode_length_buf.setter
++    def episode_length_buf(self, values: torch.Tensor):
++        # 支持批量写入
++        for env, val in zip(self.envs, values):
++            env.episode_length_buf = val.item()
++
++    def reset(self):
++        return np.array([env.reset() for env in self.envs])
++
++    def step_async(self, actions):
++        self._actions = actions
++
++    def step_wait(self):
++        obs, rewards, dones, infos = [], [], [], []
++        for env, action in zip(self.envs, self._actions):
++            o, r, d, i = env.step(action)
++            obs.append(o)
++            rewards.append(r)
++            dones.append(d)
++            infos.append(i)
++        return np.array(obs), np.array(rewards), np.array(dones), infos
++
++
++# ===================== 测试 =====================
++if __name__ == "__main__":
++    # 创建 3 个环境
++    env_fns = [CounterEnv for _ in range(3)]
++    env = RslRlVecEnvWrapper(env_fns)
++
++    obs = env.reset()
++    print("初始状态:", obs, "buffer:", env.episode_length_buf)
++
++    # 修改 buffer
++    env.episode_length_buf = torch.tensor([5, 10, 15])
++    print("修改后的 buffer:", env.episode_length_buf)
++
++    max_steps = 10  # 最多运行 10 步
++    for step in range(max_steps):
++        actions = [e.action_space.sample() for e in env.envs]
++        obs, rewards, done, infos = env.step(actions)
++        print("Obs:", obs, "Reward:", rewards, "Done:", done, "Buffer:", env.episode_length_buf)
+diff --git a/test/learn_torch.py b/test/learn_torch.py
+index 1b6ebf8..4cbdb8c 100644
+--- a/test/learn_torch.py
++++ b/test/learn_torch.py
+@@ -1,14 +1,45 @@
+-import dis
+-from math import dist
+-from cv2 import norm
+-from sympy import primefactors
+ import torch
++import torch.nn as nn
+ 
+-a = (35+135+180)%360 -180
+-print(a)
++class SimpleMLP(nn.Module):
++    def __init__(self, in_channels, block_channel, use_layernorm=True):
++        super(SimpleMLP, self).__init__()
++        self.mlp = nn.Sequential(
++            nn.Linear(in_channels, block_channel[0]),
++            nn.LayerNorm(block_channel[0]) if use_layernorm else nn.Identity(),
++            nn.ReLU(),
++            nn.Linear(block_channel[0], block_channel[1]),
++            nn.LayerNorm(block_channel[1]) if use_layernorm else nn.Identity(),
++            nn.ReLU(),
++            nn.Linear(block_channel[1], block_channel[2]),
++            nn.LayerNorm(block_channel[2]) if use_layernorm else nn.Identity(),
++            nn.ReLU(),
++        )
+ 
++    def forward(self, x):
++        x = self.mlp(x)
++        print("x ", x)
++        # x shape: (B, N, C) -> apply max pooling along N
++        x = torch.max(x, dim=1)[0]
++        return x
+ 
++# ==== Demo 开始 ====
+ 
++# 假设输入特征维度是 6，MLP 中间维度设置如下：
++in_channels = 3
++block_channel = [16, 32, 5]
++use_layernorm = True
+ 
++# 创建模型
++model = SimpleMLP(in_channels, block_channel, use_layernorm)
+ 
+-# print(b)
+\ No newline at end of file
++# 构造一个模拟输入：batch size = 2，N = 5个点，in_channels = 6
++x_input = torch.randn(1, 2, 3)  # shape: (B=2, N=5, C=6)
++print("x input ", x_input)
++# 执行前向传播
++output = model(x_input)
++
++# 打印输出结果
++print("输入 shape:", x_input.shape)
++print("输出 shape:", output.shape)
++print("输出内容:\n", output)
+diff --git a/test/test_load_mode.py b/test/test_load_mode.py
+index d4240ce..f13bfe3 100644
+--- a/test/test_load_mode.py
++++ b/test/test_load_mode.py
+@@ -4,8 +4,8 @@ import torch
+ import numpy as np
+ 
+ # policy_path = "ckpts/unitree_go2/go2/model_9000.pt"
+-policy_path = "/home/nav/isaac_new/isaac_go2_ros1_nav/logs/rsl_rl/unitree/2025-04-14_18-03-10/exported/policy_9000.pt"
+-policy = torch.load(policy_path, weights_only=True).eval()
++policy_path = "/home/nav/isaac_new/RLRoverLab/rover_envs/envs/navigation/robots/aau_rover/policies/best_agent2.pt"
++policy = torch.load(policy_path, weights_only=True)
+ 
+ print("policy ",policy)
+ 
+@@ -16,7 +16,7 @@ goal_command[1] = -0.96
+ goal_command[3] = -0.88
+ 
+ line_vel_command = np.zeros(3)
+-lidar_input = np.zeros(651) -0.6
++lidar_input = np.zeros(961) -0.6
+ 
+ # 拼接成一个一维数组
+ combined_array = np.concatenate([line_vel_command,goal_command, lidar_input])
