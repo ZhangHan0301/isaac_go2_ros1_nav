@@ -1,3 +1,5 @@
+
+
 #  Isaac Sim Unitree Go2 ROS2
 [![Python](https://img.shields.io/badge/python-3.10-blue.svg)](https://docs.python.org/3/whatsnew/3.10.html)
 [![ROS2](https://img.shields.io/badge/ROS2-Humble-orange.svg)](https://docs.ros.org/en/humble/index.html)
@@ -26,7 +28,7 @@ conda install -c conda-forge libstdcxx-ng
 
 **Step IV:** Clone this repo to your local directory.
 ```
-git clone https://github.com/Zhefan-Xu/isaac-go2-ros2.git
+git clone https://github.com/ZhangHan0301/isaac_go2_ros1_nav.git
 ```
 
 ## Run Unitree Go2 Simulation 
@@ -98,8 +100,3 @@ https://github.com/user-attachments/assets/ccc986c6-bf94-41fe-a4d5-3417ce8b3384
 
 ## Acknowledgement
 The Go2 controller is based on the RL controller implemented in [go2_omniverse](https://github.com/abizovnuralem/go2_omniverse).
-
-
-
-
-
